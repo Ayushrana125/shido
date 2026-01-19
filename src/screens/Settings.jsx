@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DefaultHabitIcon, PlusIcon } from '../components/Icons';
 import { getState, setState } from '../store';
+import { signOut } from '../auth';
 
 const Settings = () => {
   const [state, setStateLocal] = useState(getState());
@@ -18,6 +19,12 @@ const Settings = () => {
   const updateState = (newState) => {
     setState(newState);
     setStateLocal(newState);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    localStorage.removeItem('currentUser');
+    window.location.reload();
   };
 
   const handleProfileUpdate = (e) => {
@@ -272,6 +279,16 @@ const Settings = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Sign Out Section */}
+        <div className="bg-white rounded-3xl p-6 shadow-card">
+          <button
+            onClick={handleSignOut}
+            className="w-full bg-gradient-to-r from-negative to-red-400 text-white py-4 rounded-2xl font-inter font-semibold shadow-soft hover:shadow-card transition-all transform hover:scale-105"
+          >
+            Sign Out
+          </button>
         </div>
       </div>
 

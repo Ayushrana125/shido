@@ -1,40 +1,54 @@
 import { supabase } from './supabase';
 
 export const signUp = async (email, password, userData) => {
-  // Create auth user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-  });
+  // Check if user already exists
+  const { data: existingUser } = await supabase
+    .from('User_Profiles')
+    .select('*')
+    .eq('emailid', email)
+    .single();
 
-  if (authError) return { data: null, error: authError };
+  if (existingUser) {
+    return { data: null, error: { message: 'User already exists' } };
+  }
 
   // Create user profile
-  const { data: profileData, error: profileError } = await supabase
+  const { data, error } = await supabase
     .from('User_Profiles')
     .insert([{
-      user_id: authData.user.id,
       user_name: userData.name,
       emailid: email,
+      password: password, // In production, hash this
       birthdate: userData.birthdate
-    }]);
+    }])
+    .select()
+    .single();
 
-  return { data: authData, error: profileError };
-};
-
-export const signIn = async (email, password) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
   return { data, error };
 };
 
+export const signIn = async (email, password) => {
+  const { data, error } = await supabase
+    .from('User_Profiles')
+    .select('*')
+    .eq('emailid', email)
+    .eq('password', password)
+    .single();
+
+  if (error || !data) {
+    return { data: null, error: { message: 'Invalid credentials' } };
+  }
+
+  return { data, error: null };
+};
+
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  return { error };
+  // Just clear local storage or state
+  return { error: null };
 };
 
 export const getCurrentUser = () => {
-  return supabase.auth.getUser();
+  // Return stored user from localStorage or state
+  const user = localStorage.getItem('currentUser');
+  return user ? JSON.parse(user) : null;
 };

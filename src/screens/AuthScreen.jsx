@@ -22,11 +22,13 @@ const AuthScreen = ({ onAuthSuccess }) => {
           birthdate: formData.birthdate
         });
         if (error) throw error;
-        alert('Check your email for verification link!');
+        localStorage.setItem('currentUser', JSON.stringify(data));
+        onAuthSuccess(data);
       } else {
         const { data, error } = await signIn(formData.email, formData.password);
         if (error) throw error;
-        onAuthSuccess(data.user);
+        localStorage.setItem('currentUser', JSON.stringify(data));
+        onAuthSuccess(data);
       }
     } catch (error) {
       alert(error.message);
