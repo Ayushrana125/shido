@@ -10,6 +10,8 @@ const Vision = () => {
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const user = getCurrentUser();
 
   useEffect(() => {
@@ -61,11 +63,12 @@ const Vision = () => {
     }
   };
 
-  const handleDelete = async (item) => {
-    const { error } = await deleteVisionItem(item.vision_id, item.image_path);
+  const handleDeleteConfirm = async () => {
+    const { error } = await deleteVisionItem(deleteConfirm.vision_id, deleteConfirm.image_path);
     if (!error) {
-      setVisionItems(visionItems.filter(v => v.vision_id !== item.vision_id));
+      setVisionItems(visionItems.filter(v => v.vision_id !== deleteConfirm.vision_id));
     }
+    setDeleteConfirm(null);
   };
 
   return (
@@ -79,7 +82,7 @@ const Vision = () => {
                 Vision Board
               </h1>
               <p className="font-inter text-white/80 text-sm">
-                Visualize your future self
+                Visualize the life you're building
               </p>
             </div>
             
@@ -95,7 +98,7 @@ const Vision = () => {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 -mt-4">
+      <div className="px-4 md:px-8 mt-4">
         {loading ? (
           <div className="bg-white rounded-3xl p-8 text-center shadow-card max-w-md mx-auto">
             <p className="font-inter text-text-secondary">Loading...</p>
@@ -123,46 +126,52 @@ const Vision = () => {
           </div>
         ) : (
           <>
-            <div className="mb-6 max-w-4xl mx-auto">
+            <div className="mb-8 max-w-4xl mx-auto pt-4">
               <h2 className="font-poppins font-bold text-xl md:text-2xl text-text-primary mb-2">
-                Your Vision
+                Your Future
               </h2>
               <p className="font-inter text-text-secondary text-sm">
-                {visionItems.length} {visionItems.length === 1 ? 'image' : 'images'} of your future
+                A glimpse of what you're working toward
               </p>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 max-w-6xl mx-auto">
-              {visionItems.map((item) => (
-                <div key={item.vision_id} className="bg-white rounded-2xl overflow-hidden shadow-card group">
-                  <div className="relative aspect-square">
-                    <img
-                      src={item.image_url}
-                      alt="Vision"
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                      onError={(e) => {
-                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjZGN0Y5Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNkI3MjgwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+CiAgPC9zdmc+';
-                      }}
-                    />
+            <div className="columns-2 gap-3 max-w-4xl mx-auto space-y-3">
+              {visionItems.map((item, index) => (
+                <div 
+                  key={item.vision_id} 
+                  className="break-inside-avoid mb-3"
+                  style={{ height: `${200 + (index % 3) * 80}px` }}
+                >
+                  <div className="bg-white rounded-3xl overflow-hidden shadow-card group cursor-pointer h-full"
+                       onClick={() => setSelectedImage(item)}>
+                    <div className="relative h-3/4">
+                      <img
+                        src={item.image_url}
+                        alt="Vision"
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjZGN0Y5Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNkI3MjgwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+CiAgPC9zdmc+';
+                        }}
+                      />
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteConfirm(item);
+                        }}
+                        className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                     
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-overlay opacity-0 group-hover:opacity-100 transition-opacity" />
-                    
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleDelete(item)}
-                      className="absolute top-3 right-3 w-8 h-8 bg-negative/90 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <div className="p-4">
-                    <p className="font-inter text-text-primary text-sm leading-relaxed">
-                      {item.caption}
-                    </p>
+                    <div className="p-4 h-1/4 flex items-center">
+                      <p className="font-inter text-text-primary text-sm leading-relaxed">
+                        {item.caption || "One day, this will be you"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -217,7 +226,7 @@ const Vision = () => {
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   className="w-full p-4 border-2 border-gray-200 rounded-2xl font-inter focus:border-primary focus:outline-none transition-colors h-24 resize-none"
-                  placeholder="Describe your vision..."
+                  placeholder="A future you're choosing to build..."
                   required
                 />
               </div>
@@ -242,6 +251,56 @@ const Vision = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Full Screen Image Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+             onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-4xl max-h-full">
+            <img
+              src={selectedImage.image_url}
+              alt="Vision"
+              className="max-w-full max-h-full object-contain rounded-2xl"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-card">
+            <h3 className="font-poppins font-bold text-xl text-text-primary mb-3 text-center">
+              Remove this vision?
+            </h3>
+            <p className="font-inter text-text-secondary text-sm text-center mb-8">
+              This action is permanent and cannot be undone.
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 py-4 px-6 border-2 border-gray-200 rounded-2xl font-inter font-semibold text-text-secondary hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="flex-1 py-4 px-6 bg-negative text-white rounded-2xl font-inter font-semibold hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
