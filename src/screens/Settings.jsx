@@ -29,6 +29,12 @@ const Settings = () => {
   };
 
   const openHabitForm = (habit = null) => {
+    // Check if no goals exist when trying to add a habit
+    if (!habit && state.goals.length === 0) {
+      alert('Please create a goal first before adding habits.');
+      return;
+    }
+
     if (habit) {
       setEditingHabit(habit);
       setHabitForm({ ...habit, iconUrl: habit.iconUrl || '' });
