@@ -19,7 +19,7 @@ const Vision = () => {
   }, [user]);
 
   const loadVisionItems = async () => {
-    const { data, error } = await getVisionItems(user.id);
+    const { data, error } = await getVisionItems(user.user_id);
     if (!error && data) {
       setVisionItems(data);
     }
@@ -39,11 +39,11 @@ const Vision = () => {
 
     setUploading(true);
     try {
-      const { data: uploadData, error: uploadError } = await uploadVisionImage(selectedFile, user.id);
+      const { data: uploadData, error: uploadError } = await uploadVisionImage(selectedFile, user.user_id);
       if (uploadError) throw uploadError;
 
       const { data: saveData, error: saveError } = await saveVisionItem(
-        user.id,
+        user.user_id,
         uploadData.url,
         uploadData.path,
         caption
