@@ -19,13 +19,12 @@ export const uploadVisionImage = async (file, userId) => {
 
 export const saveVisionItem = async (userId, imageUrl, imagePath, caption) => {
   const { data, error } = await supabase
-    .from('vision_board')
+    .from('Vision_Board')
     .insert([{
       user_id: userId,
       image_url: imageUrl,
       image_path: imagePath,
-      caption: caption,
-      created_at: new Date().toISOString()
+      caption: caption
     }])
     .select()
     .single();
@@ -35,7 +34,7 @@ export const saveVisionItem = async (userId, imageUrl, imagePath, caption) => {
 
 export const getVisionItems = async (userId) => {
   const { data, error } = await supabase
-    .from('vision_board')
+    .from('Vision_Board')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
@@ -43,7 +42,7 @@ export const getVisionItems = async (userId) => {
   return { data, error };
 };
 
-export const deleteVisionItem = async (id, imagePath) => {
+export const deleteVisionItem = async (visionId, imagePath) => {
   // Delete from storage
   if (imagePath) {
     await supabase.storage
@@ -53,9 +52,9 @@ export const deleteVisionItem = async (id, imagePath) => {
 
   // Delete from database
   const { error } = await supabase
-    .from('vision_board')
+    .from('Vision_Board')
     .delete()
-    .eq('id', id);
+    .eq('vision_id', visionId);
 
   return { error };
 };

@@ -62,9 +62,9 @@ const Vision = () => {
   };
 
   const handleDelete = async (item) => {
-    const { error } = await deleteVisionItem(item.id, item.image_path);
+    const { error } = await deleteVisionItem(item.vision_id, item.image_path);
     if (!error) {
-      setVisionItems(visionItems.filter(v => v.id !== item.id));
+      setVisionItems(visionItems.filter(v => v.vision_id !== item.vision_id));
     }
   };
 
@@ -134,7 +134,7 @@ const Vision = () => {
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 max-w-6xl mx-auto">
               {visionItems.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-card group">
+                <div key={item.vision_id} className="bg-white rounded-2xl overflow-hidden shadow-card group">
                   <div className="relative aspect-square">
                     <img
                       src={item.image_url}
