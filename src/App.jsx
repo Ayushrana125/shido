@@ -49,7 +49,7 @@ function App() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="font-poppins font-bold text-3xl bg-gradient-primary bg-clip-text text-transparent mb-2">
+          <h1 className="font-poppins font-bold text-3xl text-primary mb-2">
             Shido
           </h1>
           <p className="font-inter text-text-secondary">Loading...</p>

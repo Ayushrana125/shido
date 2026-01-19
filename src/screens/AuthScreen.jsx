@@ -39,7 +39,7 @@ const AuthScreen = ({ onAuthSuccess }) => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="font-poppins font-bold text-4xl bg-gradient-primary bg-clip-text text-transparent mb-2">
+          <h1 className="font-poppins font-bold text-4xl text-primary mb-2">
             Shido
           </h1>
           <p className="font-inter text-text-secondary text-sm">
@@ -120,7 +120,7 @@ const AuthScreen = ({ onAuthSuccess }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-primary text-white py-4 px-6 rounded-xl font-inter font-semibold shadow-soft hover:shadow-card transition-all disabled:opacity-50"
+              className="w-full bg-primary text-white py-4 px-6 rounded-xl font-inter font-semibold shadow-soft hover:shadow-card transition-all disabled:opacity-50"
             >
               {loading ? 'Loading...' : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
