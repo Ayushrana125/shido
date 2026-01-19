@@ -20,7 +20,7 @@ const Dashboard = ({ onNavigate }) => {
     );
 
     if (habit.type === 'positive' && todayActions.length > 0) {
-      return; // Already done today
+      return;
     }
 
     setSelectedHabit(habit);
@@ -64,30 +64,31 @@ const Dashboard = ({ onNavigate }) => {
   };
 
   return (
-    <div className="flex-1 pb-32">
-      {/* Gradient Header */}
-      <div className="bg-gradient-primary pt-safe-top px-4 md:px-8 pb-8">
-        <div className="flex justify-between items-center mb-8 pt-4">
-          <h1 className="font-poppins font-bold text-2xl md:text-3xl text-white">
+    <div className="min-h-screen">
+      {/* Header with proper safe area */}
+      <div className="bg-gradient-primary pt-8 px-4 pb-6">
+        {/* Header row */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="font-poppins font-bold text-xl text-white">
             Shido
           </h1>
           <div className="text-right">
-            <p className="font-inter text-white/80 text-sm">
+            <p className="font-inter text-white/90 text-sm font-medium">
               {formatDate(new Date()).split(',')[0]}
             </p>
-            <p className="font-inter text-white/60 text-xs">
-              {formatDate(new Date()).split(',')[1]}
+            <p className="font-inter text-white/70 text-xs">
+              {formatDate(new Date()).split(',')[1]?.trim()}
             </p>
           </div>
         </div>
         
-        {/* Score Card */}
-        <div className="bg-white/20 backdrop-blur-lg rounded-3xl p-6 md:p-8 border border-white/30 max-w-md mx-auto md:max-w-lg">
+        {/* Score Card - Compact */}
+        <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 max-w-sm mx-auto">
           <div className="text-center">
-            <div className="font-poppins font-bold text-5xl md:text-6xl text-white mb-2">
+            <div className="font-poppins font-bold text-4xl text-white mb-1">
               {state.todayScore}
             </div>
-            <p className="font-inter text-white/90 text-lg font-medium mb-1">
+            <p className="font-inter text-white/90 text-base font-medium mb-1">
               Today's Score
             </p>
             <p className="font-inter text-white/70 text-sm">
@@ -97,100 +98,101 @@ const Dashboard = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-4 md:px-8 -mt-4">
+      {/* Content with proper spacing */}
+      <div className="px-4 space-y-6">
         {/* Section Header */}
-        <div className="mb-6 max-w-4xl mx-auto">
-          <h2 className="font-poppins font-bold text-xl md:text-2xl text-text-primary mb-2">
+        <div className="pt-6">
+          <h2 className="font-poppins font-bold text-xl text-text-primary mb-2">
             Today's Habits
           </h2>
-          <p className="font-inter text-text-secondary text-sm">
+          <p className="font-inter text-text-secondary text-sm leading-relaxed">
             Build discipline one action at a time
           </p>
         </div>
 
         {/* Habits */}
-        <div className="max-w-4xl mx-auto">
-          {state.habits.length === 0 ? (
-            <div className="bg-white rounded-3xl p-8 text-center shadow-card max-w-md mx-auto">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl text-gray-400">✨</span>
+        {state.habits.length === 0 ? (
+          <div className="max-w-sm mx-auto">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-card">
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+                <span className="text-2xl text-gray-400">✨</span>
               </div>
-              <h3 className="font-poppins font-bold text-lg text-text-primary mb-2">
+              <h3 className="font-poppins font-bold text-lg text-text-primary mb-3">
                 Ready to start?
               </h3>
-              <p className="font-inter text-text-secondary mb-6 leading-relaxed">
+              <p className="font-inter text-text-secondary text-sm leading-relaxed mb-6">
                 Add habits from Settings to start tracking your discipline journey.
               </p>
               <button
                 onClick={() => onNavigate('settings')}
-                className="bg-gradient-primary text-white px-8 py-4 rounded-2xl font-inter font-semibold shadow-soft hover:shadow-card transition-all transform hover:scale-105"
+                className="w-full bg-gradient-primary text-white py-4 px-6 rounded-xl font-inter font-semibold shadow-soft hover:shadow-card transition-all"
               >
                 Go to Settings
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {state.habits.map((habit) => {
-                const isDone = isHabitDoneToday(habit);
-                return (
-                  <button
-                    key={habit.id}
-                    onClick={() => handleHabitClick(habit)}
-                    disabled={isDone}
-                    className={`bg-white rounded-2xl p-6 shadow-card text-left transition-all transform hover:scale-102 ${
-                      isDone ? 'opacity-60' : 'hover:shadow-floating'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        habit.type === 'positive' 
-                          ? 'bg-gradient-to-br from-primary to-secondary' 
-                          : 'bg-gradient-to-br from-negative to-red-400'
-                      }`}>
-                        {habit.iconUrl ? (
-                          <img src={habit.iconUrl} alt={habit.name} className="w-6 h-6" />
-                        ) : (
-                          <DefaultHabitIcon className="w-6 h-6 text-white" />
-                        )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {state.habits.map((habit) => {
+              const isDone = isHabitDoneToday(habit);
+              return (
+                <button
+                  key={habit.id}
+                  onClick={() => handleHabitClick(habit)}
+                  disabled={isDone}
+                  className={`bg-white rounded-2xl p-4 shadow-card text-left transition-all ${
+                    isDone ? 'opacity-60' : 'hover:shadow-floating'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      habit.type === 'positive' 
+                        ? 'bg-gradient-to-br from-primary to-secondary' 
+                        : 'bg-gradient-to-br from-negative to-red-400'
+                    }`}>
+                      {habit.iconUrl ? (
+                        <img src={habit.iconUrl} alt={habit.name} className="w-6 h-6" />
+                      ) : (
+                        <DefaultHabitIcon className="w-6 h-6 text-white" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-inter font-semibold text-text-primary text-sm truncate">
+                          {habit.name}
+                        </h3>
+                        <span
+                          className={`font-poppins font-bold px-2 py-1 rounded-full text-xs flex-shrink-0 ml-2 ${
+                            habit.type === 'positive'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-negative/10 text-negative'
+                          }`}
+                        >
+                          {habit.points > 0 ? '+' : ''}{habit.points}
+                        </span>
                       </div>
                       
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-inter font-semibold text-text-primary">
-                            {habit.name}
-                          </h3>
-                          <span
-                            className={`font-poppins font-bold px-3 py-1 rounded-full text-sm ${
-                              habit.type === 'positive'
-                                ? 'bg-primary/10 text-primary'
-                                : 'bg-negative/10 text-negative'
-                            }`}
-                          >
-                            {habit.points > 0 ? '+' : ''}{habit.points}
-                          </span>
+                      {isDone && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                          <p className="text-xs text-primary font-inter font-medium">
+                            Completed today
+                          </p>
                         </div>
-                        
-                        {isDone && (
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-primary rounded-full" />
-                            <p className="text-sm text-primary font-inter font-medium">
-                              Completed today
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                  </div>
+                </button>
+              );
+            })
+          }
         </div>
+        )}
 
         {/* Motivational Quote */}
-        <div className="bg-gradient-to-r from-secondary/10 to-primary/10 rounded-2xl p-6 text-center max-w-2xl mx-auto">
-          <p className="font-inter text-text-primary italic leading-relaxed">
+        <div className="bg-gradient-to-r from-secondary/10 to-primary/10 rounded-2xl p-6 text-center max-w-lg mx-auto">
+          <p className="font-inter text-text-primary italic text-sm leading-relaxed">
             "Every action moves you closer to your goal."
           </p>
         </div>

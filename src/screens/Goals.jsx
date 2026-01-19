@@ -29,7 +29,7 @@ const Goals = () => {
 
     updateState({
       ...state,
-      goals: [newGoal] // Phase 1: only one goal
+      goals: [newGoal]
     });
 
     setFormData({ title: '', targetPoints: '' });
@@ -37,11 +37,11 @@ const Goals = () => {
   };
 
   return (
-    <div className="flex-1 pb-32">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-br from-secondary to-primary pt-safe-top px-6 pb-8">
-        <div className="pt-4 mb-6">
-          <h1 className="font-poppins font-bold text-2xl text-white mb-2">
+      <div className="bg-gradient-to-br from-secondary to-primary pt-8 px-4 pb-6">
+        <div className="mb-6">
+          <h1 className="font-poppins font-bold text-xl text-white mb-2">
             Your Path
           </h1>
           <p className="font-inter text-white/80 text-sm">
@@ -50,28 +50,30 @@ const Goals = () => {
         </div>
       </div>
 
-      <div className="px-6 -mt-4">
+      <div className="px-4 space-y-6">
         {state.goals.length === 0 ? (
-          <div className="bg-white rounded-3xl p-8 text-center shadow-card">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-secondary to-primary rounded-2xl flex items-center justify-center">
-              <span className="text-3xl text-white">🎯</span>
+          <div className="max-w-sm mx-auto">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-card">
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-secondary to-primary rounded-2xl flex items-center justify-center">
+                <span className="text-2xl text-white">🎯</span>
+              </div>
+              <h3 className="font-poppins font-bold text-lg text-text-primary mb-3">
+                Set Your First Goal
+              </h3>
+              <p className="font-inter text-text-secondary text-sm leading-relaxed mb-6">
+                Define your target and start your discipline journey today.
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="w-full bg-gradient-to-r from-secondary to-primary text-white py-4 px-6 rounded-xl font-inter font-semibold shadow-soft hover:shadow-card transition-all"
+              >
+                Create Goal
+              </button>
             </div>
-            <h3 className="font-poppins font-bold text-xl text-text-primary mb-3">
-              Set Your First Goal
-            </h3>
-            <p className="font-inter text-text-secondary mb-8 leading-relaxed">
-              Define your target and start your discipline journey today.
-            </p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-secondary to-primary text-white px-8 py-4 rounded-2xl font-inter font-semibold shadow-soft hover:shadow-card transition-all transform hover:scale-105"
-            >
-              Create Goal
-            </button>
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="mb-6">
+            <div className="pt-6">
               <h2 className="font-poppins font-bold text-xl text-text-primary mb-2">
                 Current Goal
               </h2>
@@ -85,32 +87,32 @@ const Goals = () => {
               const status = getPhaseStatus(state.totalScore, goal.targetPoints);
               
               return (
-                <div key={goal.id} className="bg-white rounded-3xl p-8 shadow-card">
-                  <div className="text-center mb-8">
-                    <h3 className="font-poppins font-bold text-2xl text-text-primary mb-4">
+                <div key={goal.id} className="bg-white rounded-2xl p-6 shadow-card max-w-lg mx-auto">
+                  <div className="text-center mb-6">
+                    <h3 className="font-poppins font-bold text-xl text-text-primary mb-4">
                       {goal.title}
                     </h3>
                     
                     <div className="relative mb-6">
-                      <div className="w-32 h-32 mx-auto relative">
-                        <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+                      <div className="w-24 h-24 mx-auto relative">
+                        <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 120 120">
                           <circle
                             cx="60"
                             cy="60"
-                            r="50"
+                            r="45"
                             fill="none"
                             stroke="#E5E7EB"
-                            strokeWidth="8"
+                            strokeWidth="6"
                           />
                           <circle
                             cx="60"
                             cy="60"
-                            r="50"
+                            r="45"
                             fill="none"
                             stroke="url(#progressGradient)"
-                            strokeWidth="8"
+                            strokeWidth="6"
                             strokeLinecap="round"
-                            strokeDasharray={`${progress * 3.14} 314`}
+                            strokeDasharray={`${progress * 2.83} 283`}
                             className="transition-all duration-500"
                           />
                           <defs>
@@ -122,7 +124,7 @@ const Goals = () => {
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <div className="font-poppins font-bold text-2xl text-text-primary">
+                            <div className="font-poppins font-bold text-lg text-text-primary">
                               {Math.round(progress)}%
                             </div>
                             <div className="font-inter text-text-secondary text-xs">
@@ -133,7 +135,7 @@ const Goals = () => {
                       </div>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+                    <div className="bg-gray-50 rounded-xl p-4 mb-4">
                       <div className="flex justify-between items-center text-sm font-inter">
                         <span className="text-text-secondary">Progress</span>
                         <span className="font-semibold text-text-primary">
@@ -142,7 +144,7 @@ const Goals = () => {
                       </div>
                     </div>
 
-                    <div className={`inline-flex items-center px-6 py-3 rounded-2xl bg-gradient-to-r ${status.color} text-white font-inter font-semibold shadow-soft`}>
+                    <div className={`inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r ${status.color} text-white font-inter font-semibold text-sm shadow-soft`}>
                       {status.name}
                     </div>
                   </div>
@@ -155,48 +157,48 @@ const Goals = () => {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-card">
-            <h3 className="font-poppins font-bold text-xl text-text-primary mb-6 text-center">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-card">
+            <h3 className="font-poppins font-bold text-lg text-text-primary mb-6 text-center">
               Create Your Goal
             </h3>
             <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <label className="block font-inter font-semibold text-text-primary mb-3">
+              <div className="mb-4">
+                <label className="block font-inter font-semibold text-text-primary mb-2">
                   Goal Title
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full p-4 border-2 border-gray-200 rounded-2xl font-inter focus:border-primary focus:outline-none transition-colors"
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl font-inter focus:border-primary focus:outline-none transition-colors"
                   placeholder="e.g., Get in shape"
                   required
                 />
               </div>
-              <div className="mb-8">
-                <label className="block font-inter font-semibold text-text-primary mb-3">
+              <div className="mb-6">
+                <label className="block font-inter font-semibold text-text-primary mb-2">
                   Target Points
                 </label>
                 <input
                   type="number"
                   value={formData.targetPoints}
                   onChange={(e) => setFormData({ ...formData, targetPoints: e.target.value })}
-                  className="w-full p-4 border-2 border-gray-200 rounded-2xl font-inter focus:border-primary focus:outline-none transition-colors"
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl font-inter focus:border-primary focus:outline-none transition-colors"
                   placeholder="500"
                   required
                 />
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="flex-1 py-4 px-6 border-2 border-gray-200 rounded-2xl font-inter font-semibold text-text-secondary hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-3 px-4 border-2 border-gray-200 rounded-xl font-inter font-semibold text-text-secondary hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-4 px-6 bg-gradient-to-r from-secondary to-primary text-white rounded-2xl font-inter font-semibold shadow-soft hover:shadow-card transition-all transform hover:scale-105"
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-secondary to-primary text-white rounded-xl font-inter font-semibold shadow-soft hover:shadow-card transition-all"
                 >
                   Create
                 </button>

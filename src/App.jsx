@@ -27,11 +27,12 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Full width like Instagram web */}
-      <div className="w-full max-w-6xl mx-auto">
-        {renderScreen()}
-      </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      <main className="flex-1 overflow-y-auto pb-24">
+        <div className="w-full max-w-6xl mx-auto">
+          {renderScreen()}
+        </div>
+      </main>
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
