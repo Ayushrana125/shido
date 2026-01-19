@@ -139,14 +139,14 @@ const Vision = () => {
               {visionItems.map((item) => (
                 <div 
                   key={item.vision_id} 
-                  className="bg-white rounded-3xl overflow-hidden shadow-card group cursor-pointer mb-4 break-inside-avoid"
+                  className="bg-white rounded-3xl overflow-hidden shadow-card cursor-pointer mb-4 break-inside-avoid touch-manipulation"
                   onClick={() => setSelectedImage(item)}
                 >
                   <div className="relative overflow-hidden rounded-t-3xl">
                     <img
                       src={item.image_url}
                       alt="Vision"
-                      className="w-full h-auto block transition-transform group-hover:scale-105"
+                      className="w-full h-auto block"
                       onError={(e) => {
                         e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjZGN0Y5Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNkI3MjgwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+CiAgPC9zdmc+';
                       }}
@@ -157,7 +157,7 @@ const Vision = () => {
                         e.stopPropagation();
                         setDeleteConfirm(item);
                       }}
-                      className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
