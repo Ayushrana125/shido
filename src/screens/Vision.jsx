@@ -142,11 +142,11 @@ const Vision = () => {
                   className="bg-white rounded-3xl overflow-hidden shadow-card group cursor-pointer mb-4 break-inside-avoid"
                   onClick={() => setSelectedImage(item)}
                 >
-                  <div className="relative">
+                  <div className="relative overflow-hidden rounded-t-3xl">
                     <img
                       src={item.image_url}
                       alt="Vision"
-                      className="w-full h-auto transition-transform group-hover:scale-105"
+                      className="w-full h-auto block transition-transform group-hover:scale-105"
                       onError={(e) => {
                         e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjZGN0Y5Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNkI3MjgwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+CiAgPC9zdmc+';
                       }}
