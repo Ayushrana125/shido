@@ -144,7 +144,7 @@ const Vision = () => {
                 >
                   <div className="bg-white rounded-3xl overflow-hidden shadow-card group cursor-pointer h-full"
                        onClick={() => setSelectedImage(item)}>
-                    <div className="relative h-3/4">
+                    <div className="relative h-3/4 rounded-t-3xl overflow-hidden">
                       <img
                         src={item.image_url}
                         alt="Vision"
