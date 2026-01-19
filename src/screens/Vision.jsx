@@ -1,39 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusIcon } from '../components/Icons';
-import { getState, setState } from '../store';
+import { getCurrentUser } from '../auth';
+import { uploadVisionImage, saveVisionItem, getVisionItems, deleteVisionItem } from '../visionService';
 
 const Vision = () => {
-  const [state, setStateLocal] = useState(getState());
+  const [visionItems, setVisionItems] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ imageUrl: '', caption: '' });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [caption, setCaption] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const user = getCurrentUser();
 
-  const updateState = (newState) => {
-    setState(newState);
-    setStateLocal(newState);
+  useEffect(() => {
+    if (user) {
+      loadVisionItems();
+    }
+  }, [user]);
+
+  const loadVisionItems = async () => {
+    const { data, error } = await getVisionItems(user.id);
+    if (!error && data) {
+      setVisionItems(data);
+    }
+    setLoading(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newVisionItem = {
-      id: Date.now(),
-      imageUrl: formData.imageUrl,
-      caption: formData.caption
-    };
+    if (!selectedFile) return;
 
-    updateState({
-      ...state,
-      vision: [...state.vision, newVisionItem]
-    });
+    setUploading(true);
+    try {
+      const { data: uploadData, error: uploadError } = await uploadVisionImage(selectedFile, user.id);
+      if (uploadError) throw uploadError;
 
-    setFormData({ imageUrl: '', caption: '' });
-    setShowForm(false);
+      const { data: saveData, error: saveError } = await saveVisionItem(
+        user.id,
+        uploadData.url,
+        uploadData.path,
+        caption
+      );
+      if (saveError) throw saveError;
+
+      setVisionItems([saveData, ...visionItems]);
+      setSelectedFile(null);
+      setCaption('');
+      setShowForm(false);
+    } catch (error) {
+      alert('Error uploading image: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const deleteVisionItem = (id) => {
-    updateState({
-      ...state,
-      vision: state.vision.filter(item => item.id !== id)
-    });
+  const handleDelete = async (item) => {
+    const { error } = await deleteVisionItem(item.id, item.image_path);
+    if (!error) {
+      setVisionItems(visionItems.filter(v => v.id !== item.id));
+    }
   };
 
   return (
@@ -51,7 +83,7 @@ const Vision = () => {
               </p>
             </div>
             
-            {state.vision.length > 0 && (
+            {visionItems.length > 0 && (
               <button
                 onClick={() => setShowForm(true)}
                 className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white hover:bg-white/30 transition-colors"
@@ -64,7 +96,11 @@ const Vision = () => {
       </div>
 
       <div className="px-4 md:px-8 -mt-4">
-        {state.vision.length === 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-3xl p-8 text-center shadow-card max-w-md mx-auto">
+            <p className="font-inter text-text-secondary">Loading...</p>
+          </div>
+        ) : visionItems.length === 0 ? (
           <div className="bg-white rounded-3xl p-8 text-center shadow-card max-w-md mx-auto">
             <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-secondary to-primary rounded-3xl flex items-center justify-center">
               <span className="text-4xl text-white">🎯</span>
@@ -92,17 +128,17 @@ const Vision = () => {
                 Your Vision
               </h2>
               <p className="font-inter text-text-secondary text-sm">
-                {state.vision.length} {state.vision.length === 1 ? 'image' : 'images'} of your future
+                {visionItems.length} {visionItems.length === 1 ? 'image' : 'images'} of your future
               </p>
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 max-w-6xl mx-auto">
-              {state.vision.map((item) => (
+              {visionItems.map((item) => (
                 <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-card group">
                   <div className="relative aspect-square">
                     <img
-                      src={item.imageUrl}
-                      alt={item.caption}
+                      src={item.image_url}
+                      alt="Vision"
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       onError={(e) => {
                         e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjZGN0Y5Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNkI3MjgwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+CiAgPC9zdmc+';
@@ -114,7 +150,7 @@ const Vision = () => {
                     
                     {/* Delete Button */}
                     <button
-                      onClick={() => deleteVisionItem(item.id)}
+                      onClick={() => handleDelete(item)}
                       className="absolute top-3 right-3 w-8 h-8 bg-negative/90 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +172,7 @@ const Vision = () => {
       </div>
 
       {/* Floating Add Button */}
-      {state.vision.length > 0 && (
+      {visionItems.length > 0 && (
         <button
           onClick={() => setShowForm(true)}
           className="fixed bottom-32 right-6 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-2xl shadow-floating flex items-center justify-center text-white hover:shadow-glow transition-all transform hover:scale-110 z-40"
@@ -154,24 +190,32 @@ const Vision = () => {
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
                 <label className="block font-inter font-semibold text-text-primary mb-3">
-                  Image URL
+                  Select Image
                 </label>
                 <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
                   className="w-full p-4 border-2 border-gray-200 rounded-2xl font-inter focus:border-primary focus:outline-none transition-colors"
-                  placeholder="https://example.com/image.jpg"
                   required
                 />
+                {selectedFile && (
+                  <div className="mt-4">
+                    <img
+                      src={URL.createObjectURL(selectedFile)}
+                      alt="Preview"
+                      className="w-full h-32 object-cover rounded-xl"
+                    />
+                  </div>
+                )}
               </div>
-              <div className="mb-8">
+              <div className="mb-6">
                 <label className="block font-inter font-semibold text-text-primary mb-3">
                   Caption
                 </label>
                 <textarea
-                  value={formData.caption}
-                  onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
                   className="w-full p-4 border-2 border-gray-200 rounded-2xl font-inter focus:border-primary focus:outline-none transition-colors h-24 resize-none"
                   placeholder="Describe your vision..."
                   required
@@ -180,16 +224,21 @@ const Vision = () => {
               <div className="flex gap-4">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setSelectedFile(null);
+                    setCaption('');
+                  }}
                   className="flex-1 py-4 px-6 border-2 border-gray-200 rounded-2xl font-inter font-semibold text-text-secondary hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-4 px-6 bg-gradient-to-r from-secondary to-primary text-white rounded-2xl font-inter font-semibold shadow-soft hover:shadow-card transition-all transform hover:scale-105"
+                  disabled={uploading || !selectedFile}
+                  className="flex-1 py-4 px-6 bg-gradient-to-r from-secondary to-primary text-white rounded-2xl font-inter font-semibold shadow-soft hover:shadow-card transition-all transform hover:scale-105 disabled:opacity-50"
                 >
-                  Add Image
+                  {uploading ? 'Uploading...' : 'Add Image'}
                 </button>
               </div>
             </form>
