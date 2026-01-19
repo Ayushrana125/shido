@@ -1,75 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from './supabase';
-import AuthScreen from './screens/AuthScreen';
-import BottomNav from './components/BottomNav';
-import Dashboard from './screens/Dashboard';
-import Goals from './screens/Goals';
-import Calendar from './screens/Calendar';
-import Vision from './screens/Vision';
-import Settings from './screens/Settings';
+import React from 'react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const renderScreen = () => {
-    switch (activeTab) {
-      case 'vision':
-        return <Vision />;
-      case 'calendar':
-        return <Calendar />;
-      case 'dashboard':
-        return <Dashboard onNavigate={setActiveTab} />;
-      case 'goals':
-        return <Goals />;
-      case 'settings':
-        return <Settings />;
-      default:
-        return <Dashboard onNavigate={setActiveTab} />;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-poppins font-bold text-3xl text-primary mb-2">
-            Shido
-          </h1>
-          <p className="font-inter text-text-secondary">Loading...</p>
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#F6F7F9', padding: '20px' }}>
+      <div style={{ maxWidth: '400px', margin: '0 auto', backgroundColor: 'white', padding: '20px', borderRadius: '10px' }}>
+        <h1 style={{ color: '#7ED1C1', fontSize: '32px', textAlign: 'center', marginBottom: '20px' }}>
+          Shido
+        </h1>
+        <p style={{ textAlign: 'center', color: '#6B7280', marginBottom: '30px' }}>
+          Way to Discipline
+        </p>
+        <div style={{ padding: '20px', backgroundColor: '#f0f0f0', borderRadius: '8px', textAlign: 'center' }}>
+          <p style={{ marginBottom: '10px' }}>Environment Check:</p>
+          <p>Supabase URL: {import.meta.env.VITE_SUPABASE_URL ? '✓ Set' : '✗ Missing'}</p>
+          <p>Supabase Key: {import.meta.env.VITE_SUPABASE_ANON_KEY ? '✓ Set' : '✗ Missing'}</p>
         </div>
       </div>
-    );
-  }
-
-  if (!user) {
-    return <AuthScreen onAuthSuccess={setUser} />;
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 overflow-y-auto pb-24">
-        <div className="w-full max-w-6xl mx-auto">
-          {renderScreen()}
-        </div>
-      </main>
-      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
 }
