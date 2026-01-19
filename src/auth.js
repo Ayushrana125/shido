@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export const signUp = async (email, password, userData) => {
   // Check if user already exists
   const { data: existingUser } = await supabase
-    .from('User_Profiles')
+    .from('user_profiles')
     .select('*')
     .eq('emailid', email)
     .single();
@@ -14,7 +14,7 @@ export const signUp = async (email, password, userData) => {
 
   // Create user profile
   const { data, error } = await supabase
-    .from('User_Profiles')
+    .from('user_profiles')
     .insert([{
       user_name: userData.name,
       emailid: email,
@@ -29,7 +29,7 @@ export const signUp = async (email, password, userData) => {
 
 export const signIn = async (email, password) => {
   const { data, error } = await supabase
-    .from('User_Profiles')
+    .from('user_profiles')
     .select('*')
     .eq('emailid', email)
     .eq('password', password)
