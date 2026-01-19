@@ -135,43 +135,40 @@ const Vision = () => {
               </p>
             </div>
             
-            <div className="columns-2 gap-3 max-w-4xl mx-auto space-y-3">
-              {visionItems.map((item, index) => (
+            <div className="columns-2 gap-4 max-w-4xl mx-auto">
+              {visionItems.map((item) => (
                 <div 
                   key={item.vision_id} 
-                  className="break-inside-avoid mb-3"
-                  style={{ height: `${200 + (index % 3) * 80}px` }}
+                  className="bg-white rounded-3xl overflow-hidden shadow-card group cursor-pointer mb-4 break-inside-avoid"
+                  onClick={() => setSelectedImage(item)}
                 >
-                  <div className="bg-white rounded-3xl overflow-hidden shadow-card group cursor-pointer h-full"
-                       onClick={() => setSelectedImage(item)}>
-                    <div className="relative h-3/4 rounded-t-3xl overflow-hidden">
-                      <img
-                        src={item.image_url}
-                        alt="Vision"
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                        onError={(e) => {
-                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjZGN0Y5Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNkI3MjgwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+CiAgPC9zdmc+';
-                        }}
-                      />
-                      
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfirm(item);
-                        }}
-                        className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
+                  <div className="relative">
+                    <img
+                      src={item.image_url}
+                      alt="Vision"
+                      className="w-full h-auto transition-transform group-hover:scale-105"
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjZGN0Y5Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNkI3MjgwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+CiAgPC9zdmc+';
+                      }}
+                    />
                     
-                    <div className="p-4 h-1/4 flex items-center">
-                      <p className="font-inter text-text-primary text-sm leading-relaxed">
-                        {item.caption || "One day, this will be you"}
-                      </p>
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirm(item);
+                      }}
+                      className="absolute top-3 right-3 w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <div className="p-4">
+                    <p className="font-inter text-text-primary text-sm leading-relaxed">
+                      {item.caption || "One day, this will be you"}
+                    </p>
                   </div>
                 </div>
               ))}
