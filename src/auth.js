@@ -5,7 +5,7 @@ export const signUp = async (email, password, userData) => {
   const { data: existingUser } = await supabase
     .from('user_profiles')
     .select('*')
-    .eq('emailid', email)
+    .eq('email_id', email)
     .single();
 
   if (existingUser) {
@@ -17,7 +17,7 @@ export const signUp = async (email, password, userData) => {
     .from('user_profiles')
     .insert([{
       user_name: userData.name,
-      emailid: email,
+      email_id: email,
       password: password, // In production, hash this
       birthdate: userData.birthdate
     }])
@@ -31,7 +31,7 @@ export const signIn = async (email, password) => {
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
-    .eq('emailid', email)
+    .eq('email_id', email)
     .eq('password', password)
     .single();
 
