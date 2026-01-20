@@ -32,8 +32,8 @@ export const logHabitCompletion = async (userId, habitId, points, habitType, goa
 
       if (fetchError) throw fetchError;
 
-      const pointsChange = habitType === 0 ? points : -points;
-      const newPoints = (goalData.current_points || 0) + pointsChange;
+      const pointsChange = habitType === 0 ? points : -Math.abs(points);
+      const newPoints = Math.max(0, (goalData.current_points || 0) + pointsChange);
       
       const { error: goalError } = await supabase
         .from('goals_manager')
