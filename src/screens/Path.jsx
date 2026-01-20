@@ -110,6 +110,16 @@ const Path = () => {
     }
   };
 
+  const getPhaseColor = (phase) => {
+    const colors = {
+      Energy: 'from-red-400 to-orange-400',
+      Presence: 'from-blue-400 to-indigo-400', 
+      Attraction: 'from-purple-400 to-pink-400',
+      Ready: 'from-green-400 to-emerald-400'
+    };
+    return colors[phase] || colors.Energy;
+  };
+
   const primaryGoal = goals[0];
   const positiveHabits = habits.filter(h => h.habit_type === 0);
   const negativeHabits = habits.filter(h => h.habit_type === 1);
