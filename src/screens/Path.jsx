@@ -169,7 +169,7 @@ const Path = () => {
               <div className="bg-white rounded-3xl p-8 text-center shadow-card">
                 <p className="font-inter text-text-secondary">Loading goals...</p>
               </div>
-            ) : primaryGoal ? (
+            ) : goals.length > 0 ? (
               <div className="bg-white rounded-3xl p-6 shadow-card relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full -translate-y-16 translate-x-16" />
                 <div className="relative">
@@ -210,19 +210,49 @@ const Path = () => {
                 </div>
               </div>
             ) : (
-              <button
-                onClick={() => setShowGoalForm(true)}
-                className="w-full bg-white rounded-3xl p-8 shadow-card border-2 border-dashed border-gray-200 hover:border-primary transition-all group relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative flex flex-col items-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-primary/20 group-hover:to-secondary/20 rounded-3xl flex items-center justify-center mb-4 transition-all">
-                    <PlusIcon className="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
+              <div className="space-y-6">
+                {goals.map((goal) => (
+                  <div key={goal.goal_id} className="bg-white rounded-3xl p-6 shadow-card relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full -translate-y-16 translate-x-16" />
+                    <div className="relative">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-poppins font-bold text-xl text-text-primary mb-2">
+                            {goal.goal_name}
+                          </h3>
+                          <span className="inline-block px-4 py-2 rounded-full text-sm font-inter font-semibold text-white bg-gradient-to-r from-primary to-secondary shadow-soft">
+                            {calculatePhase(goal.current_points, goal.target_points)}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-poppins font-bold text-3xl text-text-primary">
+                            {Math.round((goal.current_points / goal.target_points) * 100)}%
+                          </p>
+                          <p className="font-inter text-text-secondary text-sm">
+                            {goal.current_points} / {goal.target_points} pts
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-1000 ease-out"
+                            style={{ width: `${Math.min((goal.current_points / goal.target_points) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-inter text-text-secondary">Progress</span>
+                        <span className="font-inter font-semibold text-primary">
+                          {goal.target_points - goal.current_points} points to go
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="font-poppins font-bold text-lg text-text-primary mb-2">Create Your Goal</h3>
-                  <p className="font-inter text-text-secondary text-sm">Set a milestone that inspires you</p>
-                </div>
-              </button>
+                ))}
+              </div>
             )}
 
             {goals.map((goal) => (
