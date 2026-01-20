@@ -1,25 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ConfirmModal from '../components/ConfirmModal';
 import { DefaultHabitIcon } from '../components/Icons';
-import { getState, setState, getTodayKey, formatDate } from '../store';
+import { getCurrentUser } from '../auth';
+import { logHabitCompletion, getTodayHabitLogs, getDashboardHabits } from '../habitTrackingService';
 
 const Dashboard = ({ onNavigate }) => {
-  const [state, setStateLocal] = useState(getState());
+  const [habits, setHabits] = useState([]);
+  const [completedHabits, setCompletedHabits] = useState([]);
   const [selectedHabit, setSelectedHabit] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [todayScore, setTodayScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const user = getCurrentUser();
 
-  const updateState = (newState) => {
-    setState(newState);
-    setStateLocal(newState);
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
+
+  const loadDashboardData = async () => {
+    try {
+      const [habitsResult, logsResult] = await Promise.all([
+        getDashboardHabits(user.user_id),
+        getTodayHabitLogs(user.user_id)
+      ]);
+
+      if (!habitsResult.error && habitsResult.data) {
+        setHabits(habitsResult.data);
+      }
+
+      if (!logsResult.error && logsResult.data) {
+        setCompletedHabits(logsResult.data.map(log => log.habit_id));
+        // Calculate today's score from logs
+        const score = logsResult.data.reduce((sum, log) => sum + (log.points_earned || 0), 0);
+        setTodayScore(score);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const handleHabitClick = (habit) => {
-    const todayKey = getTodayKey();
-    const todayActions = state.actionsLog.filter(
-      action => action.date === todayKey && action.habitId === habit.id
-    );
-
-    if (habit.type === 'positive' && todayActions.length > 0) {
+    // Check if positive habit is already completed today
+    if (habit.habit_type === 0 && completedHabits.includes(habit.habit_id)) {
       return;
     }
 
@@ -27,40 +62,33 @@ const Dashboard = ({ onNavigate }) => {
     setShowModal(true);
   };
 
-  const confirmHabit = () => {
-    const todayKey = getTodayKey();
-    const now = new Date().toLocaleTimeString();
-    
-    const newAction = {
-      date: todayKey,
-      habitId: selectedHabit.id,
-      habitName: selectedHabit.name,
-      points: selectedHabit.points,
-      time: now
-    };
+  const confirmHabit = async () => {
+    try {
+      const points = selectedHabit.habit_type === 0 ? selectedHabit.points : -selectedHabit.points;
+      
+      const { error } = await logHabitCompletion(
+        user.user_id,
+        selectedHabit.habit_id,
+        selectedHabit.points,
+        selectedHabit.habit_type,
+        selectedHabit.goal_id
+      );
 
-    const newState = {
-      ...state,
-      todayScore: state.todayScore + selectedHabit.points,
-      totalScore: state.totalScore + selectedHabit.points,
-      dailyLogs: {
-        ...state.dailyLogs,
-        [todayKey]: (state.dailyLogs[todayKey] || 0) + selectedHabit.points
-      },
-      actionsLog: [...state.actionsLog, newAction]
-    };
+      if (error) throw error;
 
-    updateState(newState);
-    setShowModal(false);
-    setSelectedHabit(null);
+      // Update local state
+      setCompletedHabits([...completedHabits, selectedHabit.habit_id]);
+      setTodayScore(todayScore + points);
+      
+      setShowModal(false);
+      setSelectedHabit(null);
+    } catch (error) {
+      alert('Error logging habit: ' + error.message);
+    }
   };
 
   const isHabitDoneToday = (habit) => {
-    if (habit.type !== 'positive') return false;
-    const todayKey = getTodayKey();
-    return state.actionsLog.some(
-      action => action.date === todayKey && action.habitId === habit.id
-    );
+    return habit.habit_type === 0 && completedHabits.includes(habit.habit_id);
   };
 
   return (
@@ -86,13 +114,10 @@ const Dashboard = ({ onNavigate }) => {
         <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30 max-w-sm mx-auto">
           <div className="text-center">
             <div className="font-poppins font-bold text-4xl text-white mb-1">
-              {state.todayScore}
+              {todayScore}
             </div>
             <p className="font-inter text-white/90 text-base font-medium mb-1">
               Today's Score
-            </p>
-            <p className="font-inter text-white/70 text-sm">
-              Total: {state.totalScore} / 500
             </p>
           </div>
         </div>
@@ -111,7 +136,11 @@ const Dashboard = ({ onNavigate }) => {
         </div>
 
         {/* Habits */}
-        {state.habits.length === 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-2xl p-8 text-center shadow-card">
+            <p className="font-inter text-text-secondary">Loading habits...</p>
+          </div>
+        ) : habits.length === 0 ? (
           <div className="max-w-sm mx-auto">
             <div className="bg-white rounded-2xl p-8 text-center shadow-card">
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
@@ -133,11 +162,11 @@ const Dashboard = ({ onNavigate }) => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {state.habits.map((habit) => {
+            {habits.map((habit) => {
               const isDone = isHabitDoneToday(habit);
               return (
                 <button
-                  key={habit.id}
+                  key={habit.habit_id}
                   onClick={() => handleHabitClick(habit)}
                   disabled={isDone}
                   className={`bg-white rounded-2xl p-4 shadow-card text-left transition-all ${
@@ -146,30 +175,26 @@ const Dashboard = ({ onNavigate }) => {
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      habit.type === 'positive' 
+                      habit.habit_type === 0
                         ? 'bg-gradient-to-br from-primary to-secondary' 
                         : 'bg-gradient-to-br from-negative to-red-400'
                     }`}>
-                      {habit.iconUrl ? (
-                        <img src={habit.iconUrl} alt={habit.name} className="w-6 h-6" />
-                      ) : (
-                        <DefaultHabitIcon className="w-6 h-6 text-white" />
-                      )}
+                      <DefaultHabitIcon className="w-6 h-6 text-white" />
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="font-inter font-semibold text-text-primary text-sm truncate">
-                          {habit.name}
+                          {habit.habit_name}
                         </h3>
                         <span
                           className={`font-poppins font-bold px-2 py-1 rounded-full text-xs flex-shrink-0 ml-2 ${
-                            habit.type === 'positive'
+                            habit.habit_type === 0
                               ? 'bg-primary/10 text-primary'
                               : 'bg-negative/10 text-negative'
                           }`}
                         >
-                          {habit.points > 0 ? '+' : ''}{habit.points}
+                          {habit.habit_type === 0 ? '+' : '-'}{habit.points}
                         </span>
                       </div>
                       
@@ -181,11 +206,17 @@ const Dashboard = ({ onNavigate }) => {
                           </p>
                         </div>
                       )}
+                      
+                      {habit.goals_manager && (
+                        <p className="text-xs text-secondary font-inter mt-1">
+                          Goal: {habit.goals_manager.goal_name}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </button>
               );
-            })
+            })}
           }
         </div>
         )}
