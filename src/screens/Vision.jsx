@@ -85,15 +85,6 @@ const Vision = () => {
                 Visualize the life you're building
               </p>
             </div>
-            
-            {visionItems.length > 0 && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-              >
-                <PlusIcon className="w-6 h-6" />
-              </button>
-            )}
           </div>
         </div>
       </div>

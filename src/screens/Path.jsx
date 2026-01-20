@@ -124,32 +124,42 @@ const Path = () => {
         {activeTab === 'goals' ? (
           <div className="space-y-4">
             {primaryGoal ? (
-              <div className="bg-white rounded-3xl p-6 shadow-card">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-poppins font-bold text-lg text-text-primary mb-1">
-                      {primaryGoal.name}
-                    </h3>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-inter font-semibold text-white bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)}`}>
-                      {primaryGoal.phase}
+              <div className="bg-white rounded-3xl p-6 shadow-card relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full -translate-y-16 translate-x-16" />
+                <div className="relative">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-poppins font-bold text-xl text-text-primary mb-2">
+                        {primaryGoal.name}
+                      </h3>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-inter font-semibold text-white bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)} shadow-soft`}>
+                        {primaryGoal.phase} Phase
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-poppins font-bold text-3xl text-text-primary">
+                        {Math.round((primaryGoal.currentPoints / primaryGoal.targetPoints) * 100)}%
+                      </p>
+                      <p className="font-inter text-text-secondary text-sm">
+                        {primaryGoal.currentPoints} / {primaryGoal.targetPoints} pts
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                      <div 
+                        className={`h-full bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)} transition-all duration-1000 ease-out`}
+                        style={{ width: `${Math.min((primaryGoal.currentPoints / primaryGoal.targetPoints) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-inter text-text-secondary">Progress</span>
+                    <span className="font-inter font-semibold text-primary">
+                      {primaryGoal.targetPoints - primaryGoal.currentPoints} points to go
                     </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-poppins font-bold text-2xl text-text-primary">
-                      {Math.round((primaryGoal.currentPoints / primaryGoal.targetPoints) * 100)}%
-                    </p>
-                    <p className="font-inter text-text-secondary text-sm">
-                      {primaryGoal.currentPoints} / {primaryGoal.targetPoints}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className={`h-full bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)} transition-all duration-500`}
-                      style={{ width: `${Math.min((primaryGoal.currentPoints / primaryGoal.targetPoints) * 100, 100)}%` }}
-                    />
                   </div>
                 </div>
               </div>
@@ -157,14 +167,15 @@ const Path = () => {
 
             <button
               onClick={() => setShowGoalForm(true)}
-              className="w-full bg-white rounded-3xl p-6 shadow-card border-2 border-dashed border-gray-200 hover:border-primary transition-colors group"
+              className="w-full bg-white rounded-3xl p-8 shadow-card border-2 border-dashed border-gray-200 hover:border-primary transition-all group relative overflow-hidden"
             >
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 bg-gray-100 group-hover:bg-primary/10 rounded-2xl flex items-center justify-center mb-3 transition-colors">
-                  <PlusIcon className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex flex-col items-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-primary/20 group-hover:to-secondary/20 rounded-3xl flex items-center justify-center mb-4 transition-all">
+                  <PlusIcon className="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
                 </div>
-                <h3 className="font-poppins font-bold text-text-primary mb-1">Add Goal</h3>
-                <p className="font-inter text-text-secondary text-sm">Set your next milestone</p>
+                <h3 className="font-poppins font-bold text-lg text-text-primary mb-2">Create Your Goal</h3>
+                <p className="font-inter text-text-secondary text-sm">Set a milestone that inspires you</p>
               </div>
             </button>
           </div>
@@ -172,39 +183,47 @@ const Path = () => {
           <div className="space-y-6">
             {positiveHabits.length > 0 && (
               <div>
-                <h3 className="font-poppins font-bold text-lg text-text-primary mb-4">Positive Habits</h3>
-                <div className="space-y-3">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                    <span className="text-white text-lg">✨</span>
+                  </div>
+                  <h3 className="font-poppins font-bold text-lg text-text-primary">Positive Habits</h3>
+                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-inter font-semibold">
+                    {positiveHabits.length} active
+                  </span>
+                </div>
+                <div className="grid gap-3">
                   {positiveHabits.map((habit) => (
-                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card">
+                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                        <div className="w-14 h-14 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                           {habit.iconUrl ? (
-                            <img src={habit.iconUrl} alt={habit.name} className="w-6 h-6" />
+                            <img src={habit.iconUrl} alt={habit.name} className="w-7 h-7" />
                           ) : (
-                            <DefaultHabitIcon className="w-6 h-6 text-white" />
+                            <DefaultHabitIcon className="w-7 h-7 text-white" />
                           )}
                         </div>
                         
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-1">
-                            <h4 className="font-inter font-semibold text-text-primary">{habit.name}</h4>
-                            <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-poppins font-bold">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="font-inter font-bold text-text-primary">{habit.name}</h4>
+                            <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-poppins font-bold shadow-soft">
                               +{habit.points}
                             </span>
                           </div>
-                          <p className="font-inter text-text-secondary text-sm">{habit.message}</p>
+                          <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
                         </div>
                         
                         <div className="flex gap-2">
                           <button
                             onClick={() => openHabitForm(habit)}
-                            className="px-3 py-2 bg-secondary/10 text-secondary rounded-xl font-inter font-medium text-sm"
+                            className="px-4 py-2 bg-secondary/10 text-secondary rounded-xl font-inter font-medium text-sm hover:bg-secondary/20 transition-colors"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => deleteHabit(habit.id)}
-                            className="px-3 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm"
+                            className="px-4 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm hover:bg-negative/20 transition-colors"
                           >
                             Delete
                           </button>
@@ -218,39 +237,47 @@ const Path = () => {
 
             {negativeHabits.length > 0 && (
               <div>
-                <h3 className="font-poppins font-bold text-lg text-text-primary mb-4">Negative Habits</h3>
-                <div className="space-y-3">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-negative to-red-400 rounded-xl flex items-center justify-center">
+                    <span className="text-white text-lg">⚠️</span>
+                  </div>
+                  <h3 className="font-poppins font-bold text-lg text-text-primary">Negative Habits</h3>
+                  <span className="bg-negative/10 text-negative px-3 py-1 rounded-full text-xs font-inter font-semibold">
+                    {negativeHabits.length} to avoid
+                  </span>
+                </div>
+                <div className="grid gap-3">
                   {negativeHabits.map((habit) => (
-                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card">
+                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-negative to-red-400 rounded-xl flex items-center justify-center">
+                        <div className="w-14 h-14 bg-gradient-to-br from-negative to-red-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                           {habit.iconUrl ? (
-                            <img src={habit.iconUrl} alt={habit.name} className="w-6 h-6" />
+                            <img src={habit.iconUrl} alt={habit.name} className="w-7 h-7" />
                           ) : (
-                            <DefaultHabitIcon className="w-6 h-6 text-white" />
+                            <DefaultHabitIcon className="w-7 h-7 text-white" />
                           )}
                         </div>
                         
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-1">
-                            <h4 className="font-inter font-semibold text-text-primary">{habit.name}</h4>
-                            <span className="bg-negative/10 text-negative px-2 py-1 rounded-full text-xs font-poppins font-bold">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="font-inter font-bold text-text-primary">{habit.name}</h4>
+                            <span className="bg-negative text-white px-3 py-1 rounded-full text-xs font-poppins font-bold shadow-soft">
                               {habit.points}
                             </span>
                           </div>
-                          <p className="font-inter text-text-secondary text-sm">{habit.message}</p>
+                          <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
                         </div>
                         
                         <div className="flex gap-2">
                           <button
                             onClick={() => openHabitForm(habit)}
-                            className="px-3 py-2 bg-secondary/10 text-secondary rounded-xl font-inter font-medium text-sm"
+                            className="px-4 py-2 bg-secondary/10 text-secondary rounded-xl font-inter font-medium text-sm hover:bg-secondary/20 transition-colors"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => deleteHabit(habit.id)}
-                            className="px-3 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm"
+                            className="px-4 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm hover:bg-negative/20 transition-colors"
                           >
                             Delete
                           </button>
@@ -263,12 +290,20 @@ const Path = () => {
             )}
 
             {state.habits.length === 0 && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
-                  <span className="text-2xl text-gray-400">✨</span>
+              <div className="text-center py-16">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center">
+                  <span className="text-3xl text-gray-400">🎯</span>
                 </div>
-                <h3 className="font-poppins font-bold text-lg text-text-primary mb-2">No habits yet</h3>
-                <p className="font-inter text-text-secondary mb-6">Add your first habit to start building discipline.</p>
+                <h3 className="font-poppins font-bold text-xl text-text-primary mb-3">Build Your Habits</h3>
+                <p className="font-inter text-text-secondary mb-8 max-w-sm mx-auto leading-relaxed">
+                  Start with small, consistent actions that compound into extraordinary results.
+                </p>
+                <button
+                  onClick={() => openHabitForm()}
+                  className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl font-inter font-semibold shadow-soft hover:shadow-card transition-all transform hover:scale-105"
+                >
+                  Create First Habit
+                </button>
               </div>
             )}
           </div>

@@ -121,13 +121,13 @@ const Dashboard = ({ onNavigate }) => {
                 Ready to start?
               </h3>
               <p className="font-inter text-text-secondary text-sm leading-relaxed mb-6">
-                Add habits from Settings to start tracking your discipline journey.
+                Add habits from Path to start tracking your discipline journey.
               </p>
               <button
-                onClick={() => onNavigate('settings')}
+                onClick={() => onNavigate('path')}
                 className="w-full bg-gradient-primary text-white py-4 px-6 rounded-xl font-inter font-semibold shadow-soft hover:shadow-card transition-all"
               >
-                Go to Settings
+                Go to Path
               </button>
             </div>
           </div>
