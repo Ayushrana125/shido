@@ -89,7 +89,7 @@ const Path = () => {
         name: habit.habit_name,
         points: habit.points?.toString() || '',
         type: habit.habit_type === 0 ? 'positive' : 'negative',
-        message: habit.message || '',
+        message: habit.confirmation_msg || '',
         goalId: habit.goal_id?.toString() || ''
       });
     } else {
@@ -281,7 +281,7 @@ const Path = () => {
                               </span>
                             )}
                           </div>
-                          <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
+                          <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.confirmation_msg}</p>
                         </div>
                         
                         <div className="flex gap-2">
@@ -336,7 +336,7 @@ const Path = () => {
                               </span>
                             )}
                           </div>
-                          <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
+                          <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.confirmation_msg}</p>
                         </div>
                         
                         <div className="flex gap-2">

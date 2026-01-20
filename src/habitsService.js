@@ -9,7 +9,7 @@ export const saveHabit = async (userId, habitData) => {
       habit_type: habitData.type === 'positive' ? 0 : 1,
       goal_id: habitData.goalId,
       points: habitData.points,
-      message: habitData.message,
+      confirmation_msg: habitData.message,
       created_at: new Date().toISOString()
     }])
     .select()
