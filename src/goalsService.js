@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 
 export const saveGoal = async (userId, goalData) => {
   const { data, error } = await supabase
-    .from('Goals_Data')
+    .from('goals_manager')
     .insert([{
       user_id: userId,
       goal_name: goalData.name,
@@ -19,7 +19,7 @@ export const saveGoal = async (userId, goalData) => {
 
 export const getGoals = async (userId) => {
   const { data, error } = await supabase
-    .from('Goals_Data')
+    .from('goals_manager')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
@@ -29,7 +29,7 @@ export const getGoals = async (userId) => {
 
 export const updateGoal = async (goalId, updates) => {
   const { data, error } = await supabase
-    .from('Goals_Data')
+    .from('goals_manager')
     .update(updates)
     .eq('goal_id', goalId)
     .select()
@@ -40,7 +40,7 @@ export const updateGoal = async (goalId, updates) => {
 
 export const deleteGoal = async (goalId) => {
   const { error } = await supabase
-    .from('Goals_Data')
+    .from('goals_manager')
     .delete()
     .eq('goal_id', goalId);
 
