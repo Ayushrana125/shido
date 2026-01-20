@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusIcon, DefaultHabitIcon } from '../components/Icons';
 import { getState, setState } from '../store';
+import { getCurrentUser } from '../auth';
+import { saveGoal, getGoals, deleteGoal } from './goalsService';
 
 const Path = () => {
   const [activeTab, setActiveTab] = useState('goals');
   const [state, setStateLocal] = useState(getState());
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
@@ -12,24 +16,44 @@ const Path = () => {
   const [habitForm, setHabitForm] = useState({
     name: '', points: '', type: 'positive', message: '', iconUrl: ''
   });
+  const user = getCurrentUser();
+
+  useEffect(() => {
+    if (user) {
+      loadGoals();
+    }
+  }, [user]);
+
+  const loadGoals = async () => {
+    const { data, error } = await getGoals(user.user_id);
+    if (!error && data) {
+      setGoals(data);
+    }
+    setLoading(false);
+  };
 
   const updateState = (newState) => {
     setState(newState);
     setStateLocal(newState);
   };
 
-  const handleGoalSubmit = (e) => {
+  const handleGoalSubmit = async (e) => {
     e.preventDefault();
-    const newGoal = {
-      id: Date.now(),
-      name: goalForm.name,
-      targetPoints: parseInt(goalForm.targetPoints),
-      currentPoints: 0,
-      phase: goalForm.phase
-    };
-    updateState({ ...state, goals: [...state.goals, newGoal] });
-    setGoalForm({ name: '', targetPoints: '', phase: 'Energy' });
-    setShowGoalForm(false);
+    try {
+      const { data, error } = await saveGoal(user.user_id, {
+        name: goalForm.name,
+        targetPoints: parseInt(goalForm.targetPoints),
+        phase: goalForm.phase
+      });
+      
+      if (error) throw error;
+      
+      setGoals([data, ...goals]);
+      setGoalForm({ name: '', targetPoints: '', phase: 'Energy' });
+      setShowGoalForm(false);
+    } catch (error) {
+      alert('Error creating goal: ' + error.message);
+    }
   };
 
   const handleHabitSubmit = (e) => {
@@ -78,7 +102,7 @@ const Path = () => {
     return colors[phase] || colors.Energy;
   };
 
-  const primaryGoal = state.goals[0];
+  const primaryGoal = goals[0];
   const positiveHabits = state.habits.filter(h => h.type === 'positive');
   const negativeHabits = state.habits.filter(h => h.type === 'negative');
 
@@ -123,14 +147,18 @@ const Path = () => {
       <div className="px-6">
         {activeTab === 'goals' ? (
           <div className="space-y-4">
-            {primaryGoal ? (
+            {loading ? (
+              <div className="bg-white rounded-3xl p-8 text-center shadow-card">
+                <p className="font-inter text-text-secondary">Loading goals...</p>
+              </div>
+            ) : primaryGoal ? (
               <div className="bg-white rounded-3xl p-6 shadow-card relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full -translate-y-16 translate-x-16" />
                 <div className="relative">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="font-poppins font-bold text-xl text-text-primary mb-2">
-                        {primaryGoal.name}
+                        {primaryGoal.goal_name}
                       </h3>
                       <span className={`inline-block px-4 py-2 rounded-full text-sm font-inter font-semibold text-white bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)} shadow-soft`}>
                         {primaryGoal.phase} Phase
@@ -138,10 +166,10 @@ const Path = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-poppins font-bold text-3xl text-text-primary">
-                        {Math.round((primaryGoal.currentPoints / primaryGoal.targetPoints) * 100)}%
+                        {Math.round((primaryGoal.current_points / primaryGoal.target_points) * 100)}%
                       </p>
                       <p className="font-inter text-text-secondary text-sm">
-                        {primaryGoal.currentPoints} / {primaryGoal.targetPoints} pts
+                        {primaryGoal.current_points} / {primaryGoal.target_points} pts
                       </p>
                     </div>
                   </div>
@@ -150,7 +178,7 @@ const Path = () => {
                     <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
                       <div 
                         className={`h-full bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)} transition-all duration-1000 ease-out`}
-                        style={{ width: `${Math.min((primaryGoal.currentPoints / primaryGoal.targetPoints) * 100, 100)}%` }}
+                        style={{ width: `${Math.min((primaryGoal.current_points / primaryGoal.target_points) * 100, 100)}%` }}
                       />
                     </div>
                   </div>
@@ -158,26 +186,49 @@ const Path = () => {
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-inter text-text-secondary">Progress</span>
                     <span className="font-inter font-semibold text-primary">
-                      {primaryGoal.targetPoints - primaryGoal.currentPoints} points to go
+                      {primaryGoal.target_points - primaryGoal.current_points} points to go
                     </span>
                   </div>
                 </div>
               </div>
-            ) : null}
-
-            <button
-              onClick={() => setShowGoalForm(true)}
-              className="w-full bg-white rounded-3xl p-8 shadow-card border-2 border-dashed border-gray-200 hover:border-primary transition-all group relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative flex flex-col items-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-primary/20 group-hover:to-secondary/20 rounded-3xl flex items-center justify-center mb-4 transition-all">
-                  <PlusIcon className="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
+            ) : (
+              <button
+                onClick={() => setShowGoalForm(true)}
+                className="w-full bg-white rounded-3xl p-8 shadow-card border-2 border-dashed border-gray-200 hover:border-primary transition-all group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative flex flex-col items-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-primary/20 group-hover:to-secondary/20 rounded-3xl flex items-center justify-center mb-4 transition-all">
+                    <PlusIcon className="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
+                  </div>
+                  <h3 className="font-poppins font-bold text-lg text-text-primary mb-2">Create Your Goal</h3>
+                  <p className="font-inter text-text-secondary text-sm">Set a milestone that inspires you</p>
                 </div>
-                <h3 className="font-poppins font-bold text-lg text-text-primary mb-2">Create Your Goal</h3>
-                <p className="font-inter text-text-secondary text-sm">Set a milestone that inspires you</p>
+              </button>
+            )}
+
+            {goals.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-poppins font-bold text-lg text-text-primary">All Goals</h4>
+                {goals.map((goal) => (
+                  <div key={goal.goal_id} className="bg-white rounded-2xl p-4 shadow-card">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h5 className="font-inter font-semibold text-text-primary">{goal.goal_name}</h5>
+                        <p className="font-inter text-text-secondary text-sm">
+                          {goal.current_points} / {goal.target_points} pts • {goal.phase}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-poppins font-bold text-primary">
+                          {Math.round((goal.current_points / goal.target_points) * 100)}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </button>
+            )}
           </div>
         ) : (
           <div className="space-y-6">

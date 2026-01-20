@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getState, setState } from '../store';
 import { signOut } from '../auth';
+import { getCurrentUser } from '../auth';
+import { getGoals } from './goalsService';
 
 const Settings = () => {
   const [state, setStateLocal] = useState(getState());
   const [profileForm, setProfileForm] = useState(state.profile);
+  const [goals, setGoals] = useState([]);
+  const user = getCurrentUser();
+
+  useEffect(() => {
+    if (user) {
+      loadGoals();
+    }
+  }, [user]);
+
+  const loadGoals = async () => {
+    const { data, error } = await getGoals(user.user_id);
+    if (!error && data) {
+      setGoals(data);
+    }
+  };
 
   const updateState = (newState) => {
     setState(newState);
@@ -75,7 +92,7 @@ const Settings = () => {
                 <p className="font-inter text-text-secondary text-xs">Habits</p>
               </div>
               <div className="text-center">
-                <p className="font-poppins font-bold text-lg text-text-primary">{state.goals.length}</p>
+                <p className="font-poppins font-bold text-lg text-text-primary">{goals.length}</p>
                 <p className="font-inter text-text-secondary text-xs">Goals</p>
               </div>
             </div>
