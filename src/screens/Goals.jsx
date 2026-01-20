@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { getState, setState } from '../store';
 import { saveGoal } from '../goalsService';
 import { getCurrentUser } from '../auth';
+import { PlusIcon } from '../components/Icons';
 
 const Goals = () => {
   const [state, setStateLocal] = useState(getState());
@@ -175,9 +176,9 @@ const Goals = () => {
       {/* Floating Add Button */}
       <button
         onClick={() => setShowForm(true)}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:shadow-xl transition-all z-40"
+        className="fixed bottom-32 right-6 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-2xl shadow-floating flex items-center justify-center text-white hover:shadow-glow transition-all transform hover:scale-110 z-40"
       >
-        +
+        <PlusIcon className="w-6 h-6" />
       </button>
 
       {showForm && (
