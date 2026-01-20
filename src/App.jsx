@@ -3,7 +3,7 @@ import { getCurrentUser } from './auth';
 import AuthScreen from './screens/AuthScreen';
 import BottomNav from './components/BottomNav';
 import Dashboard from './screens/Dashboard';
-import Goals from './screens/Goals';
+import Path from './screens/Path';
 import Calendar from './screens/Calendar';
 import Vision from './screens/Vision';
 import Settings from './screens/Settings';
@@ -27,8 +27,8 @@ function App() {
         return <Calendar />;
       case 'dashboard':
         return <Dashboard onNavigate={setActiveTab} />;
-      case 'goals':
-        return <Goals />;
+      case 'path':
+        return <Path />;
       case 'settings':
         return <Settings />;
       default:

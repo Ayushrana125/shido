@@ -6,7 +6,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     { id: 'vision', label: 'Vision', Icon: VisionIcon },
     { id: 'calendar', label: 'Calendar', Icon: CalendarIcon },
     { id: 'dashboard', label: 'Dashboard', Icon: DashboardIcon },
-    { id: 'goals', label: 'Goals', Icon: GoalsIcon },
+    { id: 'path', label: 'Path', Icon: GoalsIcon },
     { id: 'settings', label: 'Settings', Icon: SettingsIcon }
   ];
 
