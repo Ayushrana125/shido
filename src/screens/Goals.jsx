@@ -93,7 +93,7 @@ const Goals = () => {
           <div className="space-y-6">
             <div className="pt-6">
               <h2 className="font-poppins font-bold text-xl text-text-primary mb-2">
-                Current Goal
+                Your Goals
               </h2>
               <p className="font-inter text-text-secondary text-sm">
                 Your progress towards discipline mastery
