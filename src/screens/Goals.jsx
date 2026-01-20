@@ -1,30 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { saveGoal, getGoals, calculatePhase } from '../goalsService';
-import { supabase } from '../supabase';
+import { getCurrentUser } from '../auth';
 
 const Goals = () => {
   const [goals, setGoals] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', targetPoints: '' });
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const user = getCurrentUser();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        loadGoals(user.id);
-      } else {
-        setLoading(false);
-      }
-    };
-    getUser();
-  }, []);
+    if (user) {
+      loadGoals();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
-  const loadGoals = async (userId) => {
+  const loadGoals = async () => {
     try {
-      const { data, error } = await getGoals(userId);
+      const { data, error } = await getGoals(user.user_id);
       if (!error && data) {
         setGoals(data);
       }
@@ -47,7 +42,7 @@ const Goals = () => {
     e.preventDefault();
     if (!user) return;
 
-    const { data, error } = await saveGoal(user.id, formData);
+    const { data, error } = await saveGoal(user.user_id, formData);
     if (!error && data) {
       setGoals([data, ...goals]);
       setFormData({ name: '', targetPoints: '' });
