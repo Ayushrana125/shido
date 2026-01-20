@@ -22,13 +22,22 @@ export const logHabitCompletion = async (userId, habitId, points, habitType, goa
 
     // 2. Update goal current_points if habit is associated with a goal
     if (goalId) {
+      // First get current points
+      const { data: goalData, error: fetchError } = await supabase
+        .from('goals_manager')
+        .select('current_points')
+        .eq('goal_id', goalId)
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const pointsChange = habitType === 0 ? points : -points;
+      const newPoints = (goalData.current_points || 0) + pointsChange;
       
       const { error: goalError } = await supabase
         .from('goals_manager')
-        .update({
-          current_points: supabase.raw(`current_points + ${pointsChange}`)
-        })
+        .update({ current_points: newPoints })
         .eq('goal_id', goalId)
         .eq('user_id', userId);
 
