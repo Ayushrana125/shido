@@ -15,17 +15,24 @@ const Goals = () => {
       setUser(user);
       if (user) {
         loadGoals(user.id);
+      } else {
+        setLoading(false);
       }
     };
     getUser();
   }, []);
 
   const loadGoals = async (userId) => {
-    const { data, error } = await getGoals(userId);
-    if (!error && data) {
-      setGoals(data);
+    try {
+      const { data, error } = await getGoals(userId);
+      if (!error && data) {
+        setGoals(data);
+      }
+    } catch (error) {
+      console.error('Error loading goals:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const getPhaseStatus = (score, target) => {
