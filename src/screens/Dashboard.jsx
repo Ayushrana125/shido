@@ -27,7 +27,16 @@ const Dashboard = ({ onNavigate }) => {
       ]);
 
       if (!habitsResult.error && habitsResult.data) {
-        setHabits(habitsResult.data);
+        // Sort habits: positive first (highest to lowest), then negative (highest to lowest)
+        const sortedHabits = habitsResult.data.sort((a, b) => {
+          // First sort by type: positive (0) before negative (1)
+          if (a.habit_type !== b.habit_type) {
+            return a.habit_type - b.habit_type;
+          }
+          // Then sort by points: highest to lowest within each type
+          return b.points - a.points;
+        });
+        setHabits(sortedHabits);
       }
 
       if (!logsResult.error && logsResult.data) {
@@ -169,29 +178,35 @@ const Dashboard = ({ onNavigate }) => {
                   key={habit.habit_id}
                   onClick={() => handleHabitClick(habit)}
                   disabled={isDone}
-                  className={`bg-white rounded-2xl p-4 shadow-card text-left transition-all ${
+                  className={`bg-white rounded-2xl shadow-card text-left transition-all ${
                     isDone ? 'opacity-60' : 'hover:shadow-floating'
+                  } ${
+                    habit.habit_type === 0 ? 'p-4' : 'p-3 opacity-75'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    <div className={`rounded-xl flex items-center justify-center flex-shrink-0 ${
                       habit.habit_type === 0
-                        ? 'bg-gradient-to-br from-primary to-secondary' 
-                        : 'bg-gradient-to-br from-negative to-red-400'
+                        ? 'w-12 h-12 bg-gradient-to-br from-primary to-secondary' 
+                        : 'w-10 h-10 bg-gradient-to-br from-negative to-red-400'
                     }`}>
-                      <DefaultHabitIcon className="w-6 h-6 text-white" />
+                      <DefaultHabitIcon className={`text-white ${
+                        habit.habit_type === 0 ? 'w-6 h-6' : 'w-5 h-5'
+                      }`} />
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-inter font-semibold text-text-primary text-sm truncate">
+                        <h3 className={`font-inter font-semibold text-text-primary truncate ${
+                          habit.habit_type === 0 ? 'text-sm' : 'text-xs'
+                        }`}>
                           {habit.habit_name}
                         </h3>
                         <span
-                          className={`font-poppins font-bold px-2 py-1 rounded-full text-xs flex-shrink-0 ml-2 ${
+                          className={`font-poppins font-bold rounded-full text-xs flex-shrink-0 ml-2 ${
                             habit.habit_type === 0
-                              ? 'bg-primary/10 text-primary'
-                              : 'bg-negative/10 text-negative'
+                              ? 'bg-primary/10 text-primary px-2 py-1'
+                              : 'bg-negative/10 text-negative px-1.5 py-0.5 text-xs'
                           }`}
                         >
                           {habit.habit_type === 0 ? '+' : '-'}{habit.points}
@@ -208,7 +223,9 @@ const Dashboard = ({ onNavigate }) => {
                       )}
                       
                       {habit.goals_manager && (
-                        <p className="text-xs text-secondary font-inter mt-1">
+                        <p className={`text-secondary font-inter mt-1 ${
+                          habit.habit_type === 0 ? 'text-xs' : 'text-xs opacity-75'
+                        }`}>
                           Goal: {habit.goals_manager.goal_name}
                         </p>
                       )}
