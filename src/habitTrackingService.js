@@ -2,7 +2,6 @@ import { supabase } from './supabase';
 
 export const logHabitCompletion = async (userId, habitId, points, habitType, goalId = null) => {
   try {
-    // Start a transaction-like operation
     const today = new Date().toISOString().split('T')[0];
     
     // 1. Log in check_mark_habit_logs
@@ -11,9 +10,10 @@ export const logHabitCompletion = async (userId, habitId, points, habitType, goa
       .insert([{
         user_id: userId,
         habit_id: habitId,
-        points_earned: points,
-        completed_at: new Date().toISOString(),
-        date: today
+        goal_id: goalId,
+        points: points,
+        habit_type: habitType,
+        log_date: today
       }])
       .select()
       .single();
@@ -22,7 +22,7 @@ export const logHabitCompletion = async (userId, habitId, points, habitType, goa
 
     // 2. Update goal current_points if habit is associated with a goal
     if (goalId) {
-      const pointsChange = habitType === 0 ? points : -points; // 0=positive, 1=negative
+      const pointsChange = habitType === 0 ? points : -points;
       
       const { error: goalError } = await supabase
         .from('goals_manager')
@@ -46,9 +46,9 @@ export const getTodayHabitLogs = async (userId) => {
   
   const { data, error } = await supabase
     .from('check_mark_habit_logs')
-    .select('habit_id')
+    .select('habit_id, points')
     .eq('user_id', userId)
-    .eq('date', today);
+    .eq('log_date', today);
 
   return { data, error };
 };

@@ -33,7 +33,7 @@ const Dashboard = ({ onNavigate }) => {
       if (!logsResult.error && logsResult.data) {
         setCompletedHabits(logsResult.data.map(log => log.habit_id));
         // Calculate today's score from logs
-        const score = logsResult.data.reduce((sum, log) => sum + (log.points_earned || 0), 0);
+        const score = logsResult.data.reduce((sum, log) => sum + (log.points || 0), 0);
         setTodayScore(score);
       }
     } catch (error) {
