@@ -361,6 +361,16 @@ const Path = () => {
         )}
       </div>
 
+      {/* Floating Add Button for Goals */}
+      {activeTab === 'goals' && (
+        <button
+          onClick={() => setShowGoalForm(true)}
+          className="fixed bottom-32 right-6 w-14 h-14 bg-gradient-to-r from-primary to-secondary rounded-2xl shadow-floating flex items-center justify-center text-white hover:shadow-glow transition-all transform hover:scale-110 z-40"
+        >
+          <PlusIcon className="w-6 h-6" />
+        </button>
+      )}
+
       {/* Floating Add Button for Habits */}
       {activeTab === 'habits' && (
         <button
