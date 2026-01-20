@@ -29,7 +29,7 @@ const Goals = () => {
 
     updateState({
       ...state,
-      goals: [...state.goals, newGoal]
+      goals: [newGoal]
     });
 
     setFormData({ title: '', targetPoints: '' });
@@ -154,16 +154,6 @@ const Goals = () => {
           </div>
         )}
       </div>
-
-      {/* Floating Add Button */}
-      {state.goals.length > 0 && (
-        <button
-          onClick={() => setShowForm(true)}
-          className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:shadow-xl transition-all z-40"
-        >
-          +
-        </button>
-      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
