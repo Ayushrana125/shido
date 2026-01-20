@@ -225,28 +225,47 @@ const Path = () => {
               </button>
             )}
 
-            {goals.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-poppins font-bold text-lg text-text-primary">All Goals</h4>
-                {goals.map((goal) => (
-                  <div key={goal.goal_id} className="bg-white rounded-2xl p-4 shadow-card">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h5 className="font-inter font-semibold text-text-primary">{goal.goal_name}</h5>
-                        <p className="font-inter text-text-secondary text-sm">
-                          {goal.current_points} / {goal.target_points} pts • {goal.phase}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-poppins font-bold text-primary">
-                          {Math.round((goal.current_points / goal.target_points) * 100)}%
-                        </p>
-                      </div>
+            {goals.map((goal) => (
+              <div key={goal.goal_id} className="bg-white rounded-3xl p-6 shadow-card relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full -translate-y-16 translate-x-16" />
+                <div className="relative">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-poppins font-bold text-xl text-text-primary mb-2">
+                        {goal.goal_name}
+                      </h3>
+                      <span className="inline-block px-4 py-2 rounded-full text-sm font-inter font-semibold text-white bg-gradient-to-r from-primary to-secondary shadow-soft">
+                        {calculatePhase(goal.current_points, goal.target_points)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-poppins font-bold text-3xl text-text-primary">
+                        {Math.round((goal.current_points / goal.target_points) * 100)}%
+                      </p>
+                      <p className="font-inter text-text-secondary text-sm">
+                        {goal.current_points} / {goal.target_points} pts
+                      </p>
                     </div>
                   </div>
-                ))}
+                  
+                  <div className="mb-4">
+                    <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-1000 ease-out"
+                        style={{ width: `${Math.min((goal.current_points / goal.target_points) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-inter text-text-secondary">Progress</span>
+                    <span className="font-inter font-semibold text-primary">
+                      {goal.target_points - goal.current_points} points to go
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         ) : (
           <div className="space-y-6">
