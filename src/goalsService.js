@@ -8,7 +8,6 @@ export const saveGoal = async (userId, goalData) => {
       goal_name: goalData.name,
       target_points: goalData.targetPoints,
       current_points: 0,
-      phase: goalData.phase,
       created_at: new Date().toISOString()
     }])
     .select()
@@ -45,4 +44,13 @@ export const deleteGoal = async (goalId) => {
     .eq('goal_id', goalId);
 
   return { error };
+};
+
+export const calculatePhase = (currentPoints, targetPoints) => {
+  const percentage = (currentPoints / targetPoints) * 100;
+  if (percentage >= 100) return 'Completed';
+  if (percentage >= 75) return 'Phase 4';
+  if (percentage >= 50) return 'Phase 3';
+  if (percentage >= 25) return 'Phase 2';
+  return 'Phase 1';
 };
