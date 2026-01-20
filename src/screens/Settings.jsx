@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getState, setState } from '../store';
 import { signOut } from '../auth';
 import { getCurrentUser } from '../auth';
-import { getGoals } from './goalsService';
+import { getGoals } from '../goalsService';
 
 const Settings = () => {
   const [state, setStateLocal] = useState(getState());

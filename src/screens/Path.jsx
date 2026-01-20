@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlusIcon, DefaultHabitIcon } from '../components/Icons';
 import { getState, setState } from '../store';
 import { getCurrentUser } from '../auth';
-import { saveGoal, getGoals, deleteGoal } from './goalsService';
+import { saveGoal, getGoals, deleteGoal } from '../goalsService';
 
 const Path = () => {
   const [activeTab, setActiveTab] = useState('goals');
