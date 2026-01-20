@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { getState, setState } from '../store';
+import { saveGoal } from '../goalsService';
+import { getCurrentUser } from '../auth';
 
 const Goals = () => {
   const [state, setStateLocal] = useState(getState());
@@ -19,8 +21,23 @@ const Goals = () => {
     return { name: 'Girlfriend Ready', color: 'from-primary to-secondary' };
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const user = getCurrentUser();
+    if (!user) return;
+
+    // Save to database
+    const { data, error } = await saveGoal(user.user_id, {
+      name: formData.title,
+      targetPoints: parseInt(formData.targetPoints)
+    });
+
+    if (error) {
+      alert('Error creating goal: ' + error.message);
+      return;
+    }
+
+    // Also update local state for immediate UI update
     const newGoal = {
       id: Date.now(),
       title: formData.title,
@@ -29,7 +46,7 @@ const Goals = () => {
 
     updateState({
       ...state,
-      goals: [newGoal]
+      goals: [...state.goals, newGoal]
     });
 
     setFormData({ title: '', targetPoints: '' });
@@ -154,6 +171,16 @@ const Goals = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Add Button */}
+      {state.goals.length > 0 && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:shadow-xl transition-all z-40"
+        >
+          +
+        </button>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
