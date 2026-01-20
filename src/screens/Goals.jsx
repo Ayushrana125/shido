@@ -1,33 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { saveGoal, getGoals, calculatePhase } from '../goalsService';
-import { getCurrentUser } from '../auth';
+import React, { useState } from 'react';
+import { getState, setState } from '../store';
 
 const Goals = () => {
-  const [goals, setGoals] = useState([]);
+  const [state, setStateLocal] = useState(getState());
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ name: '', targetPoints: '' });
-  const [loading, setLoading] = useState(true);
-  const user = getCurrentUser();
+  const [formData, setFormData] = useState({ title: '', targetPoints: '' });
 
-  useEffect(() => {
-    if (user) {
-      loadGoals();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const loadGoals = async () => {
-    try {
-      const { data, error } = await getGoals(user.user_id);
-      if (!error && data) {
-        setGoals(data);
-      }
-    } catch (error) {
-      console.error('Error loading goals:', error);
-    } finally {
-      setLoading(false);
-    }
+  const updateState = (newState) => {
+    setState(newState);
+    setStateLocal(newState);
   };
 
   const getPhaseStatus = (score, target) => {
@@ -38,16 +19,21 @@ const Goals = () => {
     return { name: 'Girlfriend Ready', color: 'from-primary to-secondary' };
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!user) return;
+    const newGoal = {
+      id: Date.now(),
+      title: formData.title,
+      targetPoints: parseInt(formData.targetPoints)
+    };
 
-    const { data, error } = await saveGoal(user.user_id, formData);
-    if (!error && data) {
-      setGoals([data, ...goals]);
-      setFormData({ name: '', targetPoints: '' });
-      setShowForm(false);
-    }
+    updateState({
+      ...state,
+      goals: [...state.goals, newGoal]
+    });
+
+    setFormData({ title: '', targetPoints: '' });
+    setShowForm(false);
   };
 
   return (
@@ -65,11 +51,7 @@ const Goals = () => {
       </div>
 
       <div className="px-4 space-y-6">
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : goals.length === 0 ? (
+        {state.goals.length === 0 ? (
           <div className="max-w-sm mx-auto">
             <div className="bg-white rounded-2xl p-8 text-center shadow-card">
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-secondary to-primary rounded-2xl flex items-center justify-center">
@@ -100,15 +82,15 @@ const Goals = () => {
               </p>
             </div>
             
-            {goals.map((goal) => {
-              const progress = Math.min((goal.current_points / goal.target_points) * 100, 100);
-              const phase = calculatePhase(goal.current_points, goal.target_points);
+            {state.goals.map((goal) => {
+              const progress = Math.min((state.totalScore / goal.targetPoints) * 100, 100);
+              const status = getPhaseStatus(state.totalScore, goal.targetPoints);
               
               return (
-                <div key={goal.goal_id} className="bg-white rounded-2xl p-6 shadow-card max-w-lg mx-auto">
+                <div key={goal.id} className="bg-white rounded-2xl p-6 shadow-card max-w-lg mx-auto">
                   <div className="text-center mb-6">
                     <h3 className="font-poppins font-bold text-xl text-text-primary mb-4">
-                      {goal.goal_name}
+                      {goal.title}
                     </h3>
                     
                     <div className="relative mb-6">
@@ -157,13 +139,13 @@ const Goals = () => {
                       <div className="flex justify-between items-center text-sm font-inter">
                         <span className="text-text-secondary">Progress</span>
                         <span className="font-semibold text-text-primary">
-                          {goal.current_points} / {goal.target_points} points
+                          {state.totalScore} / {goal.targetPoints} points
                         </span>
                       </div>
                     </div>
 
-                    <div className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-inter font-semibold text-sm shadow-soft">
-                      {phase}
+                    <div className={`inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r ${status.color} text-white font-inter font-semibold text-sm shadow-soft`}>
+                      {status.name}
                     </div>
                   </div>
                 </div>
@@ -174,7 +156,7 @@ const Goals = () => {
       </div>
 
       {/* Floating Add Button */}
-      {goals.length > 0 && (
+      {state.goals.length > 0 && (
         <button
           onClick={() => setShowForm(true)}
           className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:shadow-xl transition-all z-40"
@@ -192,12 +174,12 @@ const Goals = () => {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block font-inter font-semibold text-text-primary mb-2">
-                  Goal Name
+                  Goal Title
                 </label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full p-3 border-2 border-gray-200 rounded-xl font-inter focus:border-primary focus:outline-none transition-colors"
                   placeholder="e.g., Get in shape"
                   required
