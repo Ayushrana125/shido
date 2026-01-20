@@ -1,110 +1,127 @@
 import React, { useState, useEffect } from 'react';
 import { PlusIcon, DefaultHabitIcon } from '../components/Icons';
-import { getState, setState } from '../store';
 import { getCurrentUser } from '../auth';
-import { saveGoal, getGoals, deleteGoal } from '../goalsService';
+import { saveGoal, getGoals, deleteGoal, calculatePhase } from '../goalsService';
+import { saveHabit, getHabits, deleteHabit } from '../habitsService';
+import { supabase } from '../supabase';
 
 const Path = () => {
   const [activeTab, setActiveTab] = useState('goals');
-  const [state, setStateLocal] = useState(getState());
   const [goals, setGoals] = useState([]);
+  const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
-  const [goalForm, setGoalForm] = useState({ name: '', targetPoints: '', phase: 'Energy' });
+  const [goalForm, setGoalForm] = useState({ name: '', targetPoints: '' });
   const [habitForm, setHabitForm] = useState({
-    name: '', points: '', type: 'positive', message: '', iconUrl: ''
+    name: '', points: '', type: 'positive', message: '', goalId: ''
   });
-  const user = getCurrentUser();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      loadGoals();
-    }
-  }, [user]);
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      if (user) {
+        loadGoals(user.id);
+        loadHabits(user.id);
+      }
+    };
+    getUser();
+  }, []);
 
-  const loadGoals = async () => {
-    const { data, error } = await getGoals(user.user_id);
+  const loadGoals = async (userId) => {
+    const { data, error } = await getGoals(userId);
     if (!error && data) {
       setGoals(data);
     }
     setLoading(false);
   };
 
-  const updateState = (newState) => {
-    setState(newState);
-    setStateLocal(newState);
+  const loadHabits = async (userId) => {
+    const { data, error } = await getHabits(userId);
+    if (!error && data) {
+      setHabits(data);
+    }
   };
 
   const handleGoalSubmit = async (e) => {
     e.preventDefault();
+    if (!user) return;
+
     try {
-      const { data, error } = await saveGoal(user.user_id, {
+      const { data, error } = await saveGoal(user.id, {
         name: goalForm.name,
-        targetPoints: parseInt(goalForm.targetPoints),
-        phase: goalForm.phase
+        targetPoints: parseInt(goalForm.targetPoints)
       });
       
       if (error) throw error;
       
       setGoals([data, ...goals]);
-      setGoalForm({ name: '', targetPoints: '', phase: 'Energy' });
+      setGoalForm({ name: '', targetPoints: '' });
       setShowGoalForm(false);
     } catch (error) {
       alert('Error creating goal: ' + error.message);
     }
   };
 
-  const handleHabitSubmit = (e) => {
+  const handleHabitSubmit = async (e) => {
     e.preventDefault();
-    const habitData = {
-      ...habitForm,
-      points: parseInt(habitForm.points),
-      id: editingHabit ? editingHabit.id : Date.now()
-    };
+    if (!user) return;
 
-    let newHabits;
-    if (editingHabit) {
-      newHabits = state.habits.map(h => h.id === editingHabit.id ? habitData : h);
-    } else {
-      newHabits = [...state.habits, habitData];
+    try {
+      const habitData = {
+        name: habitForm.name,
+        points: parseInt(habitForm.points),
+        type: habitForm.type,
+        message: habitForm.message,
+        goalId: habitForm.goalId || null
+      };
+
+      const { data, error } = await saveHabit(user.id, habitData);
+      if (error) throw error;
+
+      setHabits([data, ...habits]);
+      setHabitForm({ name: '', points: '', type: 'positive', message: '', goalId: '' });
+      setShowHabitForm(false);
+      setEditingHabit(null);
+    } catch (error) {
+      alert('Error saving habit: ' + error.message);
     }
-
-    updateState({ ...state, habits: newHabits });
-    setShowHabitForm(false);
-    setEditingHabit(null);
-    setHabitForm({ name: '', points: '', type: 'positive', message: '', iconUrl: '' });
   };
 
   const openHabitForm = (habit = null) => {
     if (habit) {
       setEditingHabit(habit);
-      setHabitForm({ ...habit, iconUrl: habit.iconUrl || '' });
+      setHabitForm({
+        name: habit.habit_name,
+        points: habit.points?.toString() || '',
+        type: habit.habit_type === 0 ? 'positive' : 'negative',
+        message: habit.message || '',
+        goalId: habit.goal_id?.toString() || ''
+      });
     } else {
       setEditingHabit(null);
-      setHabitForm({ name: '', points: '', type: 'positive', message: '', iconUrl: '' });
+      setHabitForm({ name: '', points: '', type: 'positive', message: '', goalId: '' });
     }
     setShowHabitForm(true);
   };
 
-  const deleteHabit = (id) => {
-    updateState({ ...state, habits: state.habits.filter(h => h.id !== id) });
-  };
-
-  const getPhaseColor = (phase) => {
-    const colors = {
-      Energy: 'from-red-400 to-orange-400',
-      Presence: 'from-blue-400 to-indigo-400', 
-      Attraction: 'from-purple-400 to-pink-400',
-      Ready: 'from-green-400 to-emerald-400'
-    };
-    return colors[phase] || colors.Energy;
+  const handleDeleteHabit = async (habitId) => {
+    try {
+      const { error } = await deleteHabit(habitId);
+      if (error) throw error;
+      
+      setHabits(habits.filter(h => h.habit_id !== habitId));
+    } catch (error) {
+      alert('Error deleting habit: ' + error.message);
+    }
   };
 
   const primaryGoal = goals[0];
-  const positiveHabits = state.habits.filter(h => h.type === 'positive');
-  const negativeHabits = state.habits.filter(h => h.type === 'negative');
+  const positiveHabits = habits.filter(h => h.habit_type === 0);
+  const negativeHabits = habits.filter(h => h.habit_type === 1);
 
   return (
     <div className="flex-1 pb-32">
@@ -160,8 +177,8 @@ const Path = () => {
                       <h3 className="font-poppins font-bold text-xl text-text-primary mb-2">
                         {primaryGoal.goal_name}
                       </h3>
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-inter font-semibold text-white bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)} shadow-soft`}>
-                        {primaryGoal.phase} Phase
+                      <span className="inline-block px-4 py-2 rounded-full text-sm font-inter font-semibold text-white bg-gradient-to-r from-primary to-secondary shadow-soft">
+                        {calculatePhase(primaryGoal.current_points, primaryGoal.target_points)}
                       </span>
                     </div>
                     <div className="text-right">
@@ -177,7 +194,7 @@ const Path = () => {
                   <div className="mb-4">
                     <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
                       <div 
-                        className={`h-full bg-gradient-to-r ${getPhaseColor(primaryGoal.phase)} transition-all duration-1000 ease-out`}
+                        className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-1000 ease-out"
                         style={{ width: `${Math.min((primaryGoal.current_points / primaryGoal.target_points) * 100, 100)}%` }}
                       />
                     </div>
@@ -216,7 +233,7 @@ const Path = () => {
                       <div>
                         <h5 className="font-inter font-semibold text-text-primary">{goal.goal_name}</h5>
                         <p className="font-inter text-text-secondary text-sm">
-                          {goal.current_points} / {goal.target_points} pts • {goal.phase}
+                          {goal.current_points} / {goal.target_points} pts • {calculatePhase(goal.current_points, goal.target_points)}
                         </p>
                       </div>
                       <div className="text-right">
@@ -245,22 +262,23 @@ const Path = () => {
                 </div>
                 <div className="grid gap-3">
                   {positiveHabits.map((habit) => (
-                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
+                    <div key={habit.habit_id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                          {habit.iconUrl ? (
-                            <img src={habit.iconUrl} alt={habit.name} className="w-7 h-7" />
-                          ) : (
-                            <DefaultHabitIcon className="w-7 h-7 text-white" />
-                          )}
+                          <DefaultHabitIcon className="w-7 h-7 text-white" />
                         </div>
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-inter font-bold text-text-primary">{habit.name}</h4>
+                            <h4 className="font-inter font-bold text-text-primary">{habit.habit_name}</h4>
                             <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-poppins font-bold shadow-soft">
-                              +{habit.points}
+                              +{habit.points || 0}
                             </span>
+                            {habit.goals_manager && (
+                              <span className="bg-secondary/10 text-secondary px-2 py-1 rounded-full text-xs font-inter">
+                                {habit.goals_manager.goal_name}
+                              </span>
+                            )}
                           </div>
                           <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
                         </div>
@@ -273,7 +291,7 @@ const Path = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => deleteHabit(habit.id)}
+                            onClick={() => handleDeleteHabit(habit.habit_id)}
                             className="px-4 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm hover:bg-negative/20 transition-colors"
                           >
                             Delete
@@ -299,22 +317,23 @@ const Path = () => {
                 </div>
                 <div className="grid gap-3">
                   {negativeHabits.map((habit) => (
-                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
+                    <div key={habit.habit_id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-gradient-to-br from-negative to-red-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                          {habit.iconUrl ? (
-                            <img src={habit.iconUrl} alt={habit.name} className="w-7 h-7" />
-                          ) : (
-                            <DefaultHabitIcon className="w-7 h-7 text-white" />
-                          )}
+                          <DefaultHabitIcon className="w-7 h-7 text-white" />
                         </div>
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-inter font-bold text-text-primary">{habit.name}</h4>
+                            <h4 className="font-inter font-bold text-text-primary">{habit.habit_name}</h4>
                             <span className="bg-negative text-white px-3 py-1 rounded-full text-xs font-poppins font-bold shadow-soft">
-                              {habit.points}
+                              -{habit.points || 0}
                             </span>
+                            {habit.goals_manager && (
+                              <span className="bg-secondary/10 text-secondary px-2 py-1 rounded-full text-xs font-inter">
+                                {habit.goals_manager.goal_name}
+                              </span>
+                            )}
                           </div>
                           <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
                         </div>
@@ -327,7 +346,7 @@ const Path = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => deleteHabit(habit.id)}
+                            onClick={() => handleDeleteHabit(habit.habit_id)}
                             className="px-4 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm hover:bg-negative/20 transition-colors"
                           >
                             Delete
@@ -340,7 +359,7 @@ const Path = () => {
               </div>
             )}
 
-            {state.habits.length === 0 && (
+            {habits.length === 0 && (
               <div className="text-center py-16">
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center">
                   <span className="text-3xl text-gray-400">🎯</span>
@@ -399,26 +418,6 @@ const Path = () => {
                   placeholder="1000"
                   required
                 />
-              </div>
-              
-              <div>
-                <label className="block font-inter font-semibold text-text-primary mb-3">Phase</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {['Energy', 'Presence', 'Attraction', 'Ready'].map((phase) => (
-                    <button
-                      key={phase}
-                      type="button"
-                      onClick={() => setGoalForm({ ...goalForm, phase })}
-                      className={`p-3 rounded-2xl font-inter font-semibold text-sm transition-all ${
-                        goalForm.phase === phase
-                          ? `bg-gradient-to-r ${getPhaseColor(phase)} text-white shadow-soft`
-                          : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-                      }`}
-                    >
-                      {phase}
-                    </button>
-                  ))}
-                </div>
               </div>
               
               <div className="flex gap-4 pt-4">
@@ -502,14 +501,19 @@ const Path = () => {
               </div>
               
               <div>
-                <label className="block font-inter font-semibold text-text-primary mb-3">Icon URL (Optional)</label>
-                <input
-                  type="url"
-                  value={habitForm.iconUrl}
-                  onChange={(e) => setHabitForm({ ...habitForm, iconUrl: e.target.value })}
+                <label className="block font-inter font-semibold text-text-primary mb-3">Associated Goal (Optional)</label>
+                <select
+                  value={habitForm.goalId}
+                  onChange={(e) => setHabitForm({ ...habitForm, goalId: e.target.value })}
                   className="w-full p-4 border-2 border-gray-200 rounded-2xl font-inter focus:border-primary focus:outline-none transition-colors"
-                  placeholder="https://example.com/icon.png"
-                />
+                >
+                  <option value="">No specific goal</option>
+                  {goals.map((goal) => (
+                    <option key={goal.goal_id} value={goal.goal_id}>
+                      {goal.goal_name}
+                    </option>
+                  ))}
+                </select>
               </div>
               
               <div>
