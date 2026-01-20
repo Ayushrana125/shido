@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { PlusIcon, DefaultHabitIcon } from '../components/Icons';
-import { getState, setState } from '../store';
 import { getCurrentUser } from '../auth';
-import { saveGoal, getGoals, deleteGoal } from '../goalsService';
+import { saveGoal, getGoals, deleteGoal, calculatePhase } from '../goalsService';
+import { saveHabit, getHabits, deleteHabit } from '../habitsService';
 
 const Path = () => {
   const [activeTab, setActiveTab] = useState('goals');
-  const [state, setStateLocal] = useState(getState());
   const [goals, setGoals] = useState([]);
+  const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
   const [goalForm, setGoalForm] = useState({ name: '', targetPoints: '', phase: 'Energy' });
   const [habitForm, setHabitForm] = useState({
-    name: '', points: '', type: 'positive', message: '', iconUrl: ''
+    name: '', points: '', type: 'positive', message: '', goalId: ''
   });
   const user = getCurrentUser();
 
   useEffect(() => {
     if (user) {
       loadGoals();
+      loadHabits();
     }
   }, [user]);
 
@@ -32,9 +33,11 @@ const Path = () => {
     setLoading(false);
   };
 
-  const updateState = (newState) => {
-    setState(newState);
-    setStateLocal(newState);
+  const loadHabits = async () => {
+    const { data, error } = await getHabits(user.user_id);
+    if (!error && data) {
+      setHabits(data);
+    }
   };
 
   const handleGoalSubmit = async (e) => {
@@ -56,55 +59,60 @@ const Path = () => {
     }
   };
 
-  const handleHabitSubmit = (e) => {
+  const handleHabitSubmit = async (e) => {
     e.preventDefault();
-    const habitData = {
-      ...habitForm,
-      points: parseInt(habitForm.points),
-      id: editingHabit ? editingHabit.id : Date.now()
-    };
+    try {
+      const habitData = {
+        name: habitForm.name,
+        points: parseInt(habitForm.points),
+        type: habitForm.type,
+        message: habitForm.message,
+        goalId: habitForm.goalId || null
+      };
 
-    let newHabits;
-    if (editingHabit) {
-      newHabits = state.habits.map(h => h.id === editingHabit.id ? habitData : h);
-    } else {
-      newHabits = [...state.habits, habitData];
+      const { data, error } = await saveHabit(user.user_id, habitData);
+      if (error) throw error;
+
+      setHabits([data, ...habits]);
+      setHabitForm({ name: '', points: '', type: 'positive', message: '', goalId: '' });
+      setShowHabitForm(false);
+      setEditingHabit(null);
+    } catch (error) {
+      alert('Error saving habit: ' + error.message);
     }
-
-    updateState({ ...state, habits: newHabits });
-    setShowHabitForm(false);
-    setEditingHabit(null);
-    setHabitForm({ name: '', points: '', type: 'positive', message: '', iconUrl: '' });
   };
 
   const openHabitForm = (habit = null) => {
     if (habit) {
       setEditingHabit(habit);
-      setHabitForm({ ...habit, iconUrl: habit.iconUrl || '' });
+      setHabitForm({
+        name: habit.habit_name,
+        points: habit.points?.toString() || '',
+        type: habit.habit_type === 0 ? 'positive' : 'negative',
+        message: habit.message || '',
+        goalId: habit.goal_id?.toString() || ''
+      });
     } else {
       setEditingHabit(null);
-      setHabitForm({ name: '', points: '', type: 'positive', message: '', iconUrl: '' });
+      setHabitForm({ name: '', points: '', type: 'positive', message: '', goalId: '' });
     }
     setShowHabitForm(true);
   };
 
-  const deleteHabit = (id) => {
-    updateState({ ...state, habits: state.habits.filter(h => h.id !== id) });
-  };
-
-  const getPhaseColor = (phase) => {
-    const colors = {
-      Energy: 'from-red-400 to-orange-400',
-      Presence: 'from-blue-400 to-indigo-400', 
-      Attraction: 'from-purple-400 to-pink-400',
-      Ready: 'from-green-400 to-emerald-400'
-    };
-    return colors[phase] || colors.Energy;
+  const handleDeleteHabit = async (habitId) => {
+    try {
+      const { error } = await deleteHabit(habitId);
+      if (error) throw error;
+      
+      setHabits(habits.filter(h => h.habit_id !== habitId));
+    } catch (error) {
+      alert('Error deleting habit: ' + error.message);
+    }
   };
 
   const primaryGoal = goals[0];
-  const positiveHabits = state.habits.filter(h => h.type === 'positive');
-  const negativeHabits = state.habits.filter(h => h.type === 'negative');
+  const positiveHabits = habits.filter(h => h.habit_type === 0);
+  const negativeHabits = habits.filter(h => h.habit_type === 1);
 
   return (
     <div className="flex-1 pb-32">
@@ -245,22 +253,23 @@ const Path = () => {
                 </div>
                 <div className="grid gap-3">
                   {positiveHabits.map((habit) => (
-                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
+                    <div key={habit.habit_id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                          {habit.iconUrl ? (
-                            <img src={habit.iconUrl} alt={habit.name} className="w-7 h-7" />
-                          ) : (
-                            <DefaultHabitIcon className="w-7 h-7 text-white" />
-                          )}
+                          <DefaultHabitIcon className="w-7 h-7 text-white" />
                         </div>
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-inter font-bold text-text-primary">{habit.name}</h4>
+                            <h4 className="font-inter font-bold text-text-primary">{habit.habit_name}</h4>
                             <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-poppins font-bold shadow-soft">
-                              +{habit.points}
+                              +{habit.points || 0}
                             </span>
+                            {habit.goals_manager && (
+                              <span className="bg-secondary/10 text-secondary px-2 py-1 rounded-full text-xs font-inter">
+                                {habit.goals_manager.goal_name}
+                              </span>
+                            )}
                           </div>
                           <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
                         </div>
@@ -273,7 +282,7 @@ const Path = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => deleteHabit(habit.id)}
+                            onClick={() => handleDeleteHabit(habit.habit_id)}
                             className="px-4 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm hover:bg-negative/20 transition-colors"
                           >
                             Delete
@@ -299,22 +308,23 @@ const Path = () => {
                 </div>
                 <div className="grid gap-3">
                   {negativeHabits.map((habit) => (
-                    <div key={habit.id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
+                    <div key={habit.habit_id} className="bg-white rounded-2xl p-4 shadow-card hover:shadow-floating transition-all group">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-gradient-to-br from-negative to-red-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                          {habit.iconUrl ? (
-                            <img src={habit.iconUrl} alt={habit.name} className="w-7 h-7" />
-                          ) : (
-                            <DefaultHabitIcon className="w-7 h-7 text-white" />
-                          )}
+                          <DefaultHabitIcon className="w-7 h-7 text-white" />
                         </div>
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-inter font-bold text-text-primary">{habit.name}</h4>
+                            <h4 className="font-inter font-bold text-text-primary">{habit.habit_name}</h4>
                             <span className="bg-negative text-white px-3 py-1 rounded-full text-xs font-poppins font-bold shadow-soft">
-                              {habit.points}
+                              -{habit.points || 0}
                             </span>
+                            {habit.goals_manager && (
+                              <span className="bg-secondary/10 text-secondary px-2 py-1 rounded-full text-xs font-inter">
+                                {habit.goals_manager.goal_name}
+                              </span>
+                            )}
                           </div>
                           <p className="font-inter text-text-secondary text-sm leading-relaxed">{habit.message}</p>
                         </div>
@@ -327,7 +337,7 @@ const Path = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => deleteHabit(habit.id)}
+                            onClick={() => handleDeleteHabit(habit.habit_id)}
                             className="px-4 py-2 bg-negative/10 text-negative rounded-xl font-inter font-medium text-sm hover:bg-negative/20 transition-colors"
                           >
                             Delete
@@ -340,7 +350,7 @@ const Path = () => {
               </div>
             )}
 
-            {state.habits.length === 0 && (
+            {habits.length === 0 && (
               <div className="text-center py-16">
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center">
                   <span className="text-3xl text-gray-400">🎯</span>
@@ -512,14 +522,19 @@ const Path = () => {
               </div>
               
               <div>
-                <label className="block font-inter font-semibold text-text-primary mb-3">Icon URL (Optional)</label>
-                <input
-                  type="url"
-                  value={habitForm.iconUrl}
-                  onChange={(e) => setHabitForm({ ...habitForm, iconUrl: e.target.value })}
+                <label className="block font-inter font-semibold text-text-primary mb-3">Associated Goal (Optional)</label>
+                <select
+                  value={habitForm.goalId}
+                  onChange={(e) => setHabitForm({ ...habitForm, goalId: e.target.value })}
                   className="w-full p-4 border-2 border-gray-200 rounded-2xl font-inter focus:border-primary focus:outline-none transition-colors"
-                  placeholder="https://example.com/icon.png"
-                />
+                >
+                  <option value="">No specific goal</option>
+                  {goals.map((goal) => (
+                    <option key={goal.goal_id} value={goal.goal_id}>
+                      {goal.goal_name}
+                    </option>
+                  ))}
+                </select>
               </div>
               
               <div>
